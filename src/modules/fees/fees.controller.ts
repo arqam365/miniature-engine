@@ -2,13 +2,12 @@ import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/co
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { FeesService } from './fees.service';
 import { CreateFeePaymentDto } from './dto/create-fee-payment.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RbacGuard } from '../../common/guards/rbac.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
 @ApiTags('fees')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(RbacGuard)
 @Controller('fees')
 export class FeesController {
   constructor(private readonly feesService: FeesService) {}

@@ -60,6 +60,66 @@ export class DashboardService {
     };
   }
 
+  async getAttendanceTrend() {
+    const { instituteId } = requireTenantContext();
+    const instFilter = instituteId ? { instituteId } : {};
+
+    const days = 30;
+    const results: { date: string; percentage: number }[] = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      const dEnd = new Date(d);
+      dEnd.setHours(23, 59, 59, 999);
+
+      const [present, absent] = await Promise.all([
+        this.prisma.attendanceRecord.count({ where: { ...instFilter, date: d, status: 'PRESENT' } }),
+        this.prisma.attendanceRecord.count({ where: { ...instFilter, date: d, status: 'ABSENT' } }),
+      ]);
+
+      const total = present + absent;
+      results.push({
+        date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        percentage: total > 0 ? Math.round((present / total) * 100) : 0,
+      });
+    }
+
+    return results;
+  }
+
+  async getFeeCollection() {
+    const { instituteId } = requireTenantContext();
+    const instFilter = instituteId ? { instituteId } : {};
+
+    const months = 6;
+    const results: { month: string; amount: number }[] = [];
+
+    for (let i = months - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setMonth(d.getMonth() - i);
+      d.setHours(0, 0, 0, 0);
+      const dEnd = new Date(d);
+      dEnd.setMonth(dEnd.getMonth() + 1);
+      dEnd.setDate(0);
+      dEnd.setHours(23, 59, 59, 999);
+
+      const agg = await this.prisma.feePayment.aggregate({
+        where: { ...instFilter, status: 'PAID', paidAt: { gte: d, lte: dEnd } },
+        _sum: { totalAmount: true },
+      });
+
+      results.push({
+        month: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        amount: Number(agg._sum.totalAmount ?? 0),
+      });
+    }
+
+    return results;
+  }
+
   async getRecentActivity() {
     const { instituteId } = requireTenantContext();
     const instFilter = instituteId ? { instituteId } : {};

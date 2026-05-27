@@ -1,12 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ReportsService } from './reports.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
 @ApiTags('reports')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @RequirePermission('reports:read')
 @Controller('reports')
 export class ReportsController {

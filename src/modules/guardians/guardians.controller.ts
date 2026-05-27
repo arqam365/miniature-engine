@@ -3,13 +3,11 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { GuardiansService } from './guardians.service';
 import { CreateGuardianDto } from './dto/create-guardian.dto';
 import { LinkGuardianDto } from './dto/link-guardian.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @ApiTags('guardians')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('guardians')
 export class GuardiansController {
   constructor(private readonly guardiansService: GuardiansService) {}

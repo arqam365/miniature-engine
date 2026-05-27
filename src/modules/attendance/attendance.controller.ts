@@ -2,13 +2,12 @@ import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { AttendanceService } from './attendance.service';
 import { MarkAttendanceDto } from './dto/mark-attendance.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RbacGuard } from '../../common/guards/rbac.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
 @ApiTags('attendance')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(RbacGuard)
 @Controller('attendance')
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}

@@ -1,13 +1,12 @@
 import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { MadrasaService } from './madrasa.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RbacGuard } from '../../common/guards/rbac.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
 @ApiTags('madrasa')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(RbacGuard)
 @Controller('madrasa')
 export class MadrasaController {
   constructor(private readonly madrasaService: MadrasaService) {}

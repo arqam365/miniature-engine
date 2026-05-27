@@ -1,0 +1,27 @@
+name: Bug Report
+description: Something is broken in the backend
+title: "[BUG][BE] "
+labels: ["backend", "bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      placeholder: Describe the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. POST /students with body {...}
+        2. Returns 500
+        3. Error: ...
+    validations:
+      required: true
+  - type: input
+    id: endpoint
+    attributes:
+      label: Affected endpoint
+      placeholder: POST /api/v1/fees/collect

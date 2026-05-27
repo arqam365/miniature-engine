@@ -2,7 +2,6 @@ import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ExamsService } from './exams.service';
 import { CreateExamDto } from './dto/create-exam.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RbacGuard } from '../../common/guards/rbac.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 import { IsArray, IsString, IsNumber, ValidateNested } from 'class-validator';
@@ -22,7 +21,7 @@ class EnterMarksDto {
 
 @ApiTags('exams')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard, RbacGuard)
+@UseGuards(RbacGuard)
 @Controller('exams')
 export class ExamsController {
   constructor(private readonly examsService: ExamsService) {}

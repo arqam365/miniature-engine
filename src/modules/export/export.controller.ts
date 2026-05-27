@@ -2,12 +2,10 @@ import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery, ApiProduces } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 import { ExportService } from './export.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
 @ApiTags('export')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('export')
 export class ExportController {
   constructor(private readonly exportService: ExportService) {}

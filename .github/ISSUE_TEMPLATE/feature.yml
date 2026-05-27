@@ -1,0 +1,56 @@
+name: Feature Request
+description: New feature or improvement for the backend
+title: "[BE] "
+labels: ["backend", "feature"]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - Auth
+        - Students
+        - Attendance
+        - Fees
+        - Exams
+        - Accounts
+        - Reports / Export
+        - Settings
+        - Madrasa
+        - Notifications
+        - Jobs / BullMQ
+        - Realtime / WebSocket
+        - Upload / R2
+        - Security
+        - Testing
+        - DevOps
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      placeholder: What endpoint/service needs to be built?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      placeholder: |
+        - [ ] endpoint returns correct shape
+        - [ ] permission guard applied
+        - [ ] tenant-scoped query
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Urgent
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true

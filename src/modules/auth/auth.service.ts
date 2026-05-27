@@ -77,13 +77,28 @@ export class AuthService {
           select: { id: true, name: true, type: true, slug: true, logo: true },
         },
         userRoles: {
-          include: { role: true, institute: { select: { id: true, name: true } } },
+          include: {
+            role: {
+              include: {
+                rolePermissions: { include: { permission: true } },
+              },
+            },
+            institute: { select: { id: true, name: true } },
+          },
         },
       },
     });
 
     if (!user) throw new NotFoundException('User not found');
-    return user;
+
+    const permissionSet = new Set<string>();
+    for (const ur of user.userRoles) {
+      for (const rp of ur.role.rolePermissions) {
+        permissionSet.add(`${rp.permission.module}:${rp.permission.action}`);
+      }
+    }
+
+    return { ...user, permissions: Array.from(permissionSet) };
   }
 
   async getInstitutes(userId: string) {

@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
+import { UnauthorizedException } from '@nestjs/common';
 
 export interface TenantContext {
   organizationId: string;
@@ -15,6 +16,6 @@ export function getTenantContext(): TenantContext | undefined {
 
 export function requireTenantContext(): TenantContext {
   const ctx = tenantStorage.getStore();
-  if (!ctx) throw new Error('Tenant context not available');
+  if (!ctx) throw new UnauthorizedException('Session context unavailable');
   return ctx;
 }

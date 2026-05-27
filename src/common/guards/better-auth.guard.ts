@@ -35,7 +35,12 @@ export class BetterAuthGuard implements CanActivate {
     }
 
     const auth = await getAuth();
-    const session = await auth.api.getSession({ headers });
+    let session: any;
+    try {
+      session = await auth.api.getSession({ headers });
+    } catch {
+      throw new UnauthorizedException('Authentication required');
+    }
     if (!session?.user) throw new UnauthorizedException('Authentication required');
 
     const instituteId = req.headers['x-institute-id'] as string | undefined;

@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { FastifyRequest } from 'fastify';
-import { auth } from '../../lib/auth';
+import { getAuth } from '../../lib/auth';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -33,6 +33,7 @@ export class BetterAuthGuard implements CanActivate {
       }
     }
 
+    const auth = await getAuth();
     const session = await auth.api.getSession({ headers });
     if (!session?.user) throw new UnauthorizedException('Authentication required');
 

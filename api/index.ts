@@ -1,17 +1,19 @@
+import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from '../src/app.module';
 import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
 import { SanitizePipe } from '../src/common/pipes/sanitize.pipe';
-import * as express from 'express';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const express = require('express');
 
 const server = express();
-let isReady = false;
+let bootstrapError: unknown;
 
-async function bootstrap() {
+const ready = (async () => {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
-    logger: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['log', 'error', 'warn'],
+    logger: ['error', 'warn'],
   });
 
   app.enableCors({
@@ -34,14 +36,17 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new GlobalExceptionFilter());
-
   await app.init();
-  isReady = true;
-}
-
-const bootstrapPromise = bootstrap();
+})().catch((e) => {
+  bootstrapError = e;
+  console.error('[bootstrap] failed:', e);
+});
 
 export default async function handler(req: any, res: any) {
-  if (!isReady) await bootstrapPromise;
+  await ready;
+  if (bootstrapError) {
+    res.status(500).json({ error: 'Bootstrap failed', detail: String(bootstrapError) });
+    return;
+  }
   server(req, res);
 }

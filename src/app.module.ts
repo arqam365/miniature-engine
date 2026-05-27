@@ -23,7 +23,6 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ExportModule } from './modules/export/export.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
-import { RealtimeModule } from './modules/realtime/realtime.module';
 import { BetterAuthGuard } from './common/guards/better-auth.guard';
 import { RbacGuard } from './common/guards/rbac.guard';
 import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor';
@@ -52,7 +51,6 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     ReportsModule,
     ExportModule,
     AccountsModule,
-    RealtimeModule,
     SuperAdminModule,
   ],
   providers: [

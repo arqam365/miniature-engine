@@ -3,8 +3,8 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { generateId } from 'better-auth';
-import { auth } from '../../lib/auth';
+import { v4 as uuidv4 } from 'uuid';
+import { getAuth } from '../../lib/auth';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 
@@ -32,6 +32,7 @@ export class AuthService {
     await this.prisma.orgSettings.create({ data: { organizationId: org.id } });
 
     // Create user + credential account via Better Auth
+    const auth = await getAuth();
     const signUpResult = await auth.api.signUpEmail({
       body: {
         email: dto.email,
@@ -40,7 +41,7 @@ export class AuthService {
       },
     });
 
-    const userId = (signUpResult as any)?.user?.id ?? generateId();
+    const userId = (signUpResult as any)?.user?.id ?? uuidv4();
 
     await this.prisma.user.update({
       where: { email: dto.email },

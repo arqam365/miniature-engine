@@ -1,6 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
-import * as argon2 from 'argon2';
 import { PrismaService } from '../../prisma/prisma.service';
+import { getAuth } from '../../lib/auth';
 import { OnboardOrgDto } from './dto/onboard-org.dto';
 import { CreateOnboardingRequestDto } from './dto/create-onboarding-request.dto';
 import { UpdateRequestStatusDto } from './dto/update-request-status.dto';
@@ -94,7 +94,15 @@ export class SuperAdminService {
     if (emailExists) throw new ConflictException('Email already registered');
     if (slugExists) throw new ConflictException('Organization slug already taken');
 
-    const hash = await argon2.hash(dto.adminPassword);
+    // Register user via Better Auth (handles password hashing natively)
+    const auth = await getAuth();
+    const signUp = await auth.api.signUpEmail({
+      body: {
+        email: dto.adminEmail,
+        password: dto.adminPassword,
+        name: `${dto.adminFirstName} ${dto.adminLastName}`,
+      },
+    }).catch((e) => { throw new ConflictException(e?.message ?? 'Failed to create user'); });
 
     return this.prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
@@ -103,10 +111,9 @@ export class SuperAdminService {
 
       await tx.orgSettings.create({ data: { organizationId: org.id } });
 
-      const admin = await tx.user.create({
+      await tx.user.update({
+        where: { email: dto.adminEmail },
         data: {
-          email: dto.adminEmail,
-          passwordHash: hash,
           firstName: dto.adminFirstName,
           lastName: dto.adminLastName,
           organizationId: org.id,
@@ -115,7 +122,7 @@ export class SuperAdminService {
 
       return {
         organizationId: org.id,
-        adminUserId: admin.id,
+        adminUserId: (signUp as any).user?.id,
         message: 'Organization onboarded successfully',
       };
     });

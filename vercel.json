@@ -1,20 +1,16 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
+  "buildCommand": "npx prisma generate",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30,
+      "includeFiles": "node_modules/better-auth/**,node_modules/@better-auth/**,node_modules/@better-fetch/**,node_modules/@noble/**,node_modules/better-call/**,node_modules/defu/**,node_modules/jose/**,node_modules/kysely/**,node_modules/nanostores/**"
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }

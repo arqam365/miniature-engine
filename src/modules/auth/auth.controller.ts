@@ -15,7 +15,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { auth } from '../../lib/auth';
+import { getAuth } from '../../lib/auth';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -65,6 +65,13 @@ export class AuthController {
       body: hasBody ? JSON.stringify(req.body) : undefined,
     });
 
+    let auth: any;
+    try {
+      auth = await getAuth();
+    } catch (e) {
+      res.status(500).json({ error: 'auth init failed', detail: String(e) });
+      return;
+    }
     const response = await auth.handler(request);
     const body = await response.text();
 

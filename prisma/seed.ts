@@ -1,6 +1,6 @@
 import { PrismaClient, OrgType, InstituteType } from '@prisma/client';
 import * as argon2 from 'argon2';
-import { auth } from '../src/lib/auth';
+import { getAuth } from '../src/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -137,6 +137,7 @@ async function main() {
   });
 
   // Create admin user via Better Auth
+  const auth = await getAuth();
   const adminEmail = process.env.PLATFORM_OWNER_EMAIL ?? 'admin@cognivia.com';
   const adminPassword = process.env.PLATFORM_OWNER_PASSWORD ?? 'Admin@1234';
   const adminSignUp = await auth.api.signUpEmail({

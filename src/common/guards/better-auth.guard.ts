@@ -9,6 +9,7 @@ import { FastifyRequest } from 'fastify';
 import { getAuth } from '../../lib/auth';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { tenantStorage } from '../../modules/tenancy/tenant-context';
 
 @Injectable()
 export class BetterAuthGuard implements CanActivate {
@@ -77,6 +78,15 @@ export class BetterAuthGuard implements CanActivate {
       instituteId,
       permissions,
     };
+
+    // Update the tenant storage that TenancyMiddleware pre-allocated.
+    const ctx = tenantStorage.getStore();
+    if (ctx) {
+      ctx.organizationId = dbUser.organizationId ?? '';
+      ctx.userId = session.user.id;
+      ctx.permissions = permissions;
+      if (instituteId) ctx.instituteId = instituteId;
+    }
 
     return true;
   }

@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { FastifyRequest, FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -48,14 +47,12 @@ export class AuthController {
   // Better Auth catch-all — handles sign-in, sign-out, get-session, etc.
   @Public()
   @All('*')
-  async betterAuth(@Req() req: FastifyRequest, @Res() res: FastifyReply) {
-    const url = new URL(
-      req.url,
-      `http://${(req.headers.host as string) ?? 'localhost:4000'}`,
-    );
+  async betterAuth(@Req() req: any, @Res() res: any) {
+    const host = req.headers.host ?? 'localhost:4000';
+    const url = new URL(req.url, `http://${host}`);
 
     const headers = new Headers();
-    for (const [key, val] of Object.entries(req.headers)) {
+    for (const [key, val] of Object.entries(req.headers as Record<string, unknown>)) {
       if (val != null) {
         headers.set(key, Array.isArray(val) ? val.join(', ') : String(val));
       }
@@ -69,16 +66,21 @@ export class AuthController {
     });
 
     const response = await auth.handler(request);
-
-    response.headers.forEach((val, key) => {
-      // Skip Better Auth's CORS headers — NestJS handles CORS
-      if (!key.toLowerCase().startsWith('access-control-')) {
-        void res.header(key, val);
-      }
-    });
-
-    res.status(response.status);
     const body = await response.text();
-    return res.send(body || null);
+
+    // Works with both Express and Fastify adapters
+    if (typeof res.set === 'function') {
+      // Express
+      response.headers.forEach((val, key) => {
+        if (!key.toLowerCase().startsWith('access-control-')) res.set(key, val);
+      });
+      res.status(response.status).send(body || null);
+    } else {
+      // Fastify
+      response.headers.forEach((val, key) => {
+        if (!key.toLowerCase().startsWith('access-control-')) res.header(key, val);
+      });
+      res.status(response.status).send(body || null);
+    }
   }
 }

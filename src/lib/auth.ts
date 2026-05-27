@@ -37,7 +37,10 @@ function initAuth(): Promise<void> {
       database: prismaAdapter(prisma, { provider: 'postgresql' }),
       baseURL: process.env.BETTER_AUTH_URL ?? 'http://localhost:4000',
       secret: process.env.BETTER_AUTH_SECRET ?? 'fallback-secret-change-in-production',
-      trustedOrigins: [process.env.FRONTEND_URL ?? 'http://localhost:3000'],
+      trustedOrigins: [
+        'http://localhost:3000',
+        ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+      ],
       basePath: '/api/v1/auth',
       emailAndPassword: {
         enabled: true,

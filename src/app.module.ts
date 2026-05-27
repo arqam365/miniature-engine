@@ -17,6 +17,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { MadrasaModule } from './modules/madrasa/madrasa.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
+import { StatusModule } from './modules/status/status.module';
 import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { GuardiansModule } from './modules/guardians/guardians.module';
 import { TasksModule } from './modules/tasks/tasks.module';
@@ -38,6 +39,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     TenancyModule,
     AuthModule,
     HealthModule,
+    StatusModule,
     DashboardModule,
     StudentsModule,
     AttendanceModule,

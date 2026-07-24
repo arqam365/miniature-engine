@@ -75,6 +75,94 @@ export class ExportService {
     return wb.xlsx.writeBuffer() as unknown as Buffer;
   }
 
+  async feesExcel(): Promise<Buffer> {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+
+    const payments = await this.prisma.feePayment.findMany({
+      where: { instituteId, status: 'PAID' },
+      include: {
+        student: { select: { admissionNo: true, firstName: true, lastName: true } },
+        feeStructure: { select: { name: true } },
+      },
+      orderBy: { paidAt: 'desc' },
+    });
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Fee Payments');
+
+    ws.columns = [
+      { header: 'Receipt No', key: 'receiptNo', width: 18 },
+      { header: 'Admission No', key: 'admissionNo', width: 15 },
+      { header: 'Student Name', key: 'name', width: 22 },
+      { header: 'Fee Type', key: 'feeType', width: 20 },
+      { header: 'Amount', key: 'amount', width: 12 },
+      { header: 'Discount', key: 'discount', width: 12 },
+      { header: 'Late Fee', key: 'lateFee', width: 12 },
+      { header: 'Total', key: 'total', width: 12 },
+      { header: 'Method', key: 'method', width: 14 },
+      { header: 'Paid At', key: 'paidAt', width: 18 },
+    ];
+
+    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+
+    for (const p of payments) {
+      ws.addRow({
+        receiptNo: p.receiptNo,
+        admissionNo: p.student.admissionNo,
+        name: `${p.student.firstName} ${p.student.lastName}`,
+        feeType: p.feeStructure?.name ?? '',
+        amount: Number(p.amount),
+        discount: Number(p.discount ?? 0),
+        lateFee: Number(p.lateFee ?? 0),
+        total: Number(p.totalAmount),
+        method: p.paymentMethod ?? 'CASH',
+        paidAt: p.paidAt ? dayjs(p.paidAt).format('DD/MM/YYYY HH:mm') : '',
+      });
+    }
+
+    return wb.xlsx.writeBuffer() as unknown as Buffer;
+  }
+
+  async vouchersExcel(): Promise<Buffer> {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+
+    const vouchers = await this.prisma.voucher.findMany({
+      where: { instituteId },
+      orderBy: { voucherDate: 'desc' },
+    });
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Vouchers');
+
+    ws.columns = [
+      { header: 'Voucher No', key: 'voucherNo', width: 16 },
+      { header: 'Type', key: 'type', width: 12 },
+      { header: 'Amount', key: 'amount', width: 14 },
+      { header: 'Description', key: 'description', width: 30 },
+      { header: 'Payment Method', key: 'method', width: 16 },
+      { header: 'Date', key: 'date', width: 14 },
+    ];
+
+    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4F46E5' } };
+
+    for (const v of vouchers) {
+      ws.addRow({
+        voucherNo: v.voucherNo,
+        type: v.type,
+        amount: Number(v.amount),
+        description: v.description ?? '',
+        method: v.paymentMethod ?? '',
+        date: dayjs(v.voucherDate).format('DD/MM/YYYY'),
+      });
+    }
+
+    return wb.xlsx.writeBuffer() as unknown as Buffer;
+  }
+
   async attendanceExcel(date: string): Promise<Buffer> {
     const { instituteId } = requireTenantContext();
     if (!instituteId) throw new BadRequestException('X-Institute-Id header required');

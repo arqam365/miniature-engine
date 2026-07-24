@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import { DonationType } from '@prisma/client';
@@ -70,6 +70,48 @@ export class MadrasaService {
       _count: { status: true },
     });
     return groups.map((g) => ({ status: g.status, count: g._count.status }));
+  }
+
+  async getHifzList(page = 1, limit = 20) {
+    const { instituteId } = requireTenantContext();
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.prisma.hifzProgress.findMany({
+        where: { instituteId },
+        skip,
+        take: limit,
+        orderBy: { evaluatedAt: 'desc' },
+        include: { student: { select: { firstName: true, lastName: true, admissionNo: true } } },
+      }),
+      this.prisma.hifzProgress.count({ where: { instituteId } }),
+    ]);
+    return { data, total, page, limit };
+  }
+
+  async updateHifz(id: string, dto: { status?: string; remarks?: string; fromAyat?: number; toAyat?: number }) {
+    const { instituteId } = requireTenantContext();
+    const record = await this.prisma.hifzProgress.findFirst({ where: { id, instituteId } });
+    if (!record) throw new NotFoundException('Hifz record not found');
+
+    const dbStatus = dto.status ? ((STATUS_MAP[dto.status] ?? dto.status) as any) : undefined;
+    return this.prisma.hifzProgress.update({
+      where: { id },
+      data: {
+        ...(dbStatus && { status: dbStatus }),
+        ...(dto.remarks !== undefined && { remarks: dto.remarks }),
+        ...(dto.fromAyat !== undefined && { fromAyat: dto.fromAyat }),
+        ...(dto.toAyat !== undefined && { toAyat: dto.toAyat }),
+      },
+      include: { student: { select: { firstName: true, lastName: true, admissionNo: true } } },
+    });
+  }
+
+  async deleteHifz(id: string) {
+    const { instituteId } = requireTenantContext();
+    const record = await this.prisma.hifzProgress.findFirst({ where: { id, instituteId } });
+    if (!record) throw new NotFoundException('Hifz record not found');
+    await this.prisma.hifzProgress.delete({ where: { id } });
+    return { deleted: true };
   }
 
   // ─── Sponsorships ────────────────────────────────────────────────────────────

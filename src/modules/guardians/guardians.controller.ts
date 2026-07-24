@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { GuardiansService } from './guardians.service';
 import { CreateGuardianDto } from './dto/create-guardian.dto';
 import { LinkGuardianDto } from './dto/link-guardian.dto';
@@ -11,6 +11,34 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 @Controller('guardians')
 export class GuardiansController {
   constructor(private readonly guardiansService: GuardiansService) {}
+
+  @Get()
+  @RequirePermission('students:read')
+  @ApiOperation({ summary: 'List guardians (paginated, searchable)' })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'pageSize', required: false })
+  findAll(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.guardiansService.findAll({ search, page: Number(page), pageSize: Number(pageSize) });
+  }
+
+  @Get('sponsors')
+  @RequirePermission('students:read')
+  @ApiOperation({ summary: 'List sponsors (paginated, searchable)' })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'pageSize', required: false })
+  findSponsors(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.guardiansService.findSponsors({ search, page: Number(page), pageSize: Number(pageSize) });
+  }
 
   @Post()
   @RequirePermission('students:write')

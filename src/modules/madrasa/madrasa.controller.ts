@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { MadrasaService } from './madrasa.service';
 import { RbacGuard } from '../../common/guards/rbac.guard';
@@ -23,10 +23,33 @@ export class MadrasaController {
     return this.madrasaService.getStudentHifzProgress(studentId);
   }
 
+  @Get('hifz')
+  @RequirePermission('madrasa:read')
+  @ApiOperation({ summary: 'List all Hifz records (paginated)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  getHifzList(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.madrasaService.getHifzList(Number(page) || 1, Number(limit) || 20);
+  }
+
   @Get('hifz/summary')
   @RequirePermission('madrasa:read')
   @ApiOperation({ summary: 'Get Hifz completion summary by status' })
   getHifzSummary() { return this.madrasaService.getHifzSummary(); }
+
+  @Patch('hifz/:id')
+  @RequirePermission('madrasa:create')
+  @ApiOperation({ summary: 'Update a Hifz record' })
+  updateHifz(@Param('id') id: string, @Body() dto: any) {
+    return this.madrasaService.updateHifz(id, dto);
+  }
+
+  @Delete('hifz/:id')
+  @RequirePermission('madrasa:create')
+  @ApiOperation({ summary: 'Delete a Hifz record' })
+  deleteHifz(@Param('id') id: string) {
+    return this.madrasaService.deleteHifz(id);
+  }
 
   @Post('sponsorships')
   @RequirePermission('madrasa:create')

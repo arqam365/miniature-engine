@@ -35,4 +35,28 @@ export class ExportController {
       .header('Content-Disposition', `attachment; filename="attendance-${target}.xlsx"`)
       .send(buffer);
   }
+
+  @Get('fees')
+  @RequirePermission('fees:read')
+  @ApiOperation({ summary: 'Export all paid fee payments to Excel' })
+  @ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  async exportFees(@Res() res: FastifyReply) {
+    const buffer = await this.exportService.feesExcel();
+    res
+      .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('Content-Disposition', 'attachment; filename="fees.xlsx"')
+      .send(buffer);
+  }
+
+  @Get('vouchers')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'Export all vouchers to Excel' })
+  @ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  async exportVouchers(@Res() res: FastifyReply) {
+    const buffer = await this.exportService.vouchersExcel();
+    res
+      .header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .header('Content-Disposition', 'attachment; filename="vouchers.xlsx"')
+      .send(buffer);
+  }
 }

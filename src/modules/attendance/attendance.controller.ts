@@ -57,4 +57,18 @@ export class AttendanceController {
   getAbsentees(@Query('date') date: string) {
     return this.attendanceService.getAbsentees(date);
   }
+
+  @Get('report')
+  @RequirePermission('attendance:read')
+  @ApiOperation({ summary: 'Attendance % report for a section over a date range' })
+  @ApiQuery({ name: 'sectionId', required: true })
+  @ApiQuery({ name: 'from', required: true })
+  @ApiQuery({ name: 'to', required: true })
+  getReport(
+    @Query('sectionId') sectionId: string,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.attendanceService.getAttendanceReport(sectionId, from, to);
+  }
 }

@@ -1,11 +1,91 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateGuardianDto } from './dto/create-guardian.dto';
 import { LinkGuardianDto } from './dto/link-guardian.dto';
+import { requireTenantContext } from '../tenancy/tenant-context';
 
 @Injectable()
 export class GuardiansService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async findAll(params: { search?: string; page?: number; pageSize?: number }) {
+    const { instituteId } = requireTenantContext();
+    const page = Number(params.page) || 1;
+    const pageSize = Number(params.pageSize) || 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {};
+    if (params.search) {
+      where.OR = [
+        { firstName: { contains: params.search, mode: 'insensitive' } },
+        { lastName: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (instituteId) {
+      where.students = { some: { student: { instituteId } } };
+    }
+
+    const [raw, total] = await Promise.all([
+      this.prisma.guardian.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
+      this.prisma.guardian.count({ where }),
+    ]);
+
+    const data = raw.map((g, i) => ({
+      id: g.id,
+      refId: String(skip + i + 1).padStart(6, '0'),
+      guardianId: `GRD-${g.id.slice(-6).toUpperCase()}`,
+      name: `${g.firstName} ${g.lastName}`,
+      phone: g.phone,
+      email: g.email,
+      country: null,
+      state: null,
+      city: g.address ?? null,
+      address: g.address,
+      pincode: null,
+      googleMapLocation: null,
+      remarks: null,
+      createdAt: g.createdAt.toISOString(),
+    }));
+
+    return { data, total, page, pageSize };
+  }
+
+  async findSponsors(params: { search?: string; page?: number; pageSize?: number }) {
+    const page = Number(params.page) || 1;
+    const pageSize = Number(params.pageSize) || 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = { isSponsor: true };
+    if (params.search) {
+      where.OR = [
+        { firstName: { contains: params.search, mode: 'insensitive' } },
+        { lastName: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [raw, total] = await Promise.all([
+      this.prisma.guardian.findMany({ where, skip, take: pageSize, orderBy: { createdAt: 'desc' } }),
+      this.prisma.guardian.count({ where }),
+    ]);
+
+    const data = raw.map((g, i) => ({
+      id: g.id,
+      refId: String(skip + i + 1).padStart(6, '0'),
+      sponsorId: `SPO-${g.id.slice(-6).toUpperCase()}`,
+      name: `${g.firstName} ${g.lastName}`,
+      phone: g.phone,
+      email: g.email,
+      country: null,
+      organizationName: g.occupation ?? null,
+      sponsorshipType: null,
+      createdAt: g.createdAt.toISOString(),
+    }));
+
+    return { data, total, page, pageSize };
+  }
 
   async create(dto: CreateGuardianDto) {
     return this.prisma.guardian.create({ data: dto });

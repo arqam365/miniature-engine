@@ -95,4 +95,40 @@ export class AttendanceService {
       },
     });
   }
+
+  async getAttendanceReport(sectionId: string, from: string, to: string) {
+    const { instituteId } = requireTenantContext();
+    const start = new Date(from);
+    const end = new Date(to);
+
+    const records = await this.prisma.attendanceRecord.findMany({
+      where: { instituteId, sectionId, date: { gte: start, lte: end } },
+      include: { student: { select: { id: true, firstName: true, lastName: true, admissionNo: true } } },
+    });
+
+    const studentMap = new Map<string, { student: any; total: number; present: number; absent: number; late: number; excused: number }>();
+
+    for (const r of records) {
+      const key = r.studentId;
+      if (!studentMap.has(key)) {
+        studentMap.set(key, { student: r.student, total: 0, present: 0, absent: 0, late: 0, excused: 0 });
+      }
+      const entry = studentMap.get(key)!;
+      entry.total++;
+      if (r.status === 'PRESENT') entry.present++;
+      else if (r.status === 'ABSENT') entry.absent++;
+      else if (r.status === 'LATE') entry.late++;
+      else if (r.status === 'EXCUSED') entry.excused++;
+    }
+
+    return Array.from(studentMap.values()).map((e) => ({
+      student: e.student,
+      total: e.total,
+      present: e.present,
+      absent: e.absent,
+      late: e.late,
+      excused: e.excused,
+      percentage: e.total > 0 ? Math.round((e.present / e.total) * 100) : 0,
+    })).sort((a, b) => b.percentage - a.percentage);
+  }
 }

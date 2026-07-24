@@ -59,7 +59,7 @@ async function main() {
   await prisma.orgSettings.upsert({
     where: { organizationId: org.id },
     update: {},
-    create: { organizationId: org.id, timezone: 'Asia/Karachi', currency: 'PKR', language: 'en' },
+    create: { organizationId: org.id, timezone: 'Asia/Kolkata', currency: 'INR', language: 'en' },
   });
 
   // Create institutes

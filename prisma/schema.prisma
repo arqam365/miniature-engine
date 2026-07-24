@@ -940,9 +940,9 @@ model Notification {
 model OrgSettings {
   id             String   @id @default(cuid())
   organizationId String   @unique
-  timezone       String   @default("Asia/Karachi")
+  timezone       String   @default("Asia/Kolkata")
   language       String   @default("en")
-  currency       String   @default("PKR")
+  currency       String   @default("INR")
   dateFormat     String   @default("DD/MM/YYYY")
   theme          String   @default("light")
   reportHeader   String?

@@ -28,7 +28,9 @@ export class TasksService {
 
   async findAll(query: { page?: number; limit?: number; completed?: boolean }) {
     const { organizationId } = requireTenantContext();
-    const { page = 1, limit = 20, completed } = query;
+    const page = parseInt(query.page as any, 10) || 1;
+    const limit = parseInt(query.limit as any, 10) || 20;
+    const { completed } = query;
     const skip = (page - 1) * limit;
 
     const where: any = { organizationId };

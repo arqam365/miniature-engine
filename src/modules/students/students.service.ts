@@ -26,7 +26,9 @@ export class StudentsService {
     const { instituteId } = requireTenantContext();
     if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
-    const { search, classId, sectionId, page = 1, limit = 20 } = query;
+    const page = parseInt(query.page as any, 10) || 1;
+    const limit = parseInt(query.limit as any, 10) || 20;
+    const { search, classId, sectionId } = query;
     const skip = (page - 1) * limit;
 
     const where: any = { instituteId, isActive: true };

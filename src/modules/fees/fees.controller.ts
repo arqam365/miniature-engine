@@ -19,6 +19,24 @@ export class FeesController {
     return this.feesService.collectPayment(dto);
   }
 
+  @Get('history')
+  @RequirePermission('fees:read')
+  @ApiOperation({ summary: 'Paginated history of all paid fee payments' })
+  @ApiQuery({ name: 'search', required: false })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  getHistory(
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.feesService.getPaymentHistory({ search, from, to, page: Number(page), limit: Number(limit) });
+  }
+
   @Get('student/:studentId')
   @RequirePermission('fees:read')
   @ApiOperation({ summary: 'Get all fee payments for a student' })
@@ -28,9 +46,15 @@ export class FeesController {
 
   @Get('defaulters')
   @RequirePermission('fees:read')
-  @ApiOperation({ summary: 'Get fee defaulters list' })
-  getDefaulters(@Query('academicYearId') academicYearId?: string) {
-    return this.feesService.getDefaulters(academicYearId);
+  @ApiOperation({ summary: 'Get fee defaulters list (paginated)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  getDefaulters(
+    @Query('academicYearId') academicYearId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.feesService.getDefaulters({ academicYearId, page: Number(page), limit: Number(limit) });
   }
 
   @Get('collection-summary')
@@ -47,5 +71,43 @@ export class FeesController {
   @ApiOperation({ summary: 'Get fee dashboard stats (today, pending, overdue)' })
   getDashboardStats() {
     return this.feesService.getDashboardStats();
+  }
+
+  // ─── Fee Categories ─────────────────────────────────────────────────────────
+
+  @Get('categories')
+  @RequirePermission('fees:read')
+  @ApiOperation({ summary: 'List fee categories' })
+  getCategories() {
+    return this.feesService.getCategories();
+  }
+
+  @Post('categories')
+  @RequirePermission('fees:create')
+  @ApiOperation({ summary: 'Create a fee category' })
+  createCategory(@Body() dto: { name: string }) {
+    return this.feesService.createCategory(dto);
+  }
+
+  // ─── Fee Structures ─────────────────────────────────────────────────────────
+
+  @Get('structures')
+  @RequirePermission('fees:read')
+  @ApiOperation({ summary: 'List fee structures' })
+  @ApiQuery({ name: 'academicYearId', required: false })
+  getStructures(
+    @Query('academicYearId') academicYearId?: string,
+    @Query('classId') classId?: string,
+  ) {
+    return this.feesService.getStructures({ academicYearId, classId });
+  }
+
+  @Post('structures')
+  @RequirePermission('fees:create')
+  @ApiOperation({ summary: 'Create a fee structure' })
+  createStructure(
+    @Body() dto: { name: string; feeCategoryId: string; academicYearId: string; amount: number; dueDay?: number; lateFeeAmount?: number },
+  ) {
+    return this.feesService.createStructure(dto);
   }
 }

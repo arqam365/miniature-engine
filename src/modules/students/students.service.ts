@@ -18,7 +18,12 @@ export class StudentsService {
     if (existing) throw new ConflictException('Admission number already exists');
 
     return this.prisma.student.create({
-      data: { ...dto, organizationId, instituteId },
+      data: {
+        ...dto,
+        organizationId,
+        instituteId,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      },
     });
   }
 
@@ -99,7 +104,10 @@ export class StudentsService {
     await this.findOne(id);
     return this.prisma.student.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      },
     });
   }
 

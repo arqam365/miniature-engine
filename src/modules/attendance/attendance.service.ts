@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 import { requireTenantContext } from '../tenancy/tenant-context';
@@ -13,7 +13,7 @@ export class AttendanceService {
 
   async markBulk(dto: MarkAttendanceDto) {
     const { instituteId, userId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const date = new Date(dto.date);
 

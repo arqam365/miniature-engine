@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import { DonationType } from '@prisma/client';
@@ -30,7 +30,7 @@ export class MadrasaService {
     remarks?: string;
   }) {
     const { instituteId, userId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const dbStatus = (STATUS_MAP[dto.status] ?? dto.status) as any;
     const surahLabel = dto.surahFrom === dto.surahTo

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { EnrollStudentDto } from './dto/enroll-student.dto';
@@ -10,7 +10,7 @@ export class StudentsService {
 
   async create(dto: CreateStudentDto) {
     const { organizationId, instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const existing = await this.prisma.student.findUnique({
       where: { instituteId_admissionNo: { instituteId, admissionNo: dto.admissionNo } },
@@ -24,7 +24,7 @@ export class StudentsService {
 
   async findAll(query: { search?: string; classId?: string; sectionId?: string; page?: number; limit?: number }) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const { search, classId, sectionId, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
@@ -103,7 +103,7 @@ export class StudentsService {
 
   async enroll(studentId: string, dto: EnrollStudentDto) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     await this.findOne(studentId);
 

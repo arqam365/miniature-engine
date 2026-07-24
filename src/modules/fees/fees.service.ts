@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateFeePaymentDto } from './dto/create-fee-payment.dto';
 import { requireTenantContext } from '../tenancy/tenant-context';
@@ -10,7 +10,7 @@ export class FeesService {
 
   async collectPayment(dto: CreateFeePaymentDto) {
     const { instituteId, userId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const receiptNo = await this.generateReceiptNo(instituteId);
     const discount = dto.discount ?? 0;

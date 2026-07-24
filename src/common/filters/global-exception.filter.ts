@@ -35,7 +35,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         status = HttpStatus.NOT_FOUND;
         message = 'Record not found';
         error = 'Not Found';
+      } else if (exception.code === 'P2003') {
+        status = HttpStatus.BAD_REQUEST;
+        message = 'Referenced record not found';
+        error = 'Bad Request';
+      } else {
+        this.logger.error(`Prisma ${exception.code}: ${exception.message}`);
       }
+    } else if (exception instanceof Prisma.PrismaClientValidationError) {
+      status = HttpStatus.BAD_REQUEST;
+      message = 'Invalid request data';
+      error = 'Bad Request';
+      this.logger.error(exception.message);
     } else {
       this.logger.error(exception);
     }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import { OrgType, InstituteType } from '@prisma/client';
@@ -105,7 +105,7 @@ export class SettingsService {
   // Classes & Sections
   async getClasses() {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
     return this.prisma.class.findMany({
       where: { instituteId, isActive: true },
       include: { sections: true, classSubject: { include: { subject: true } } },
@@ -115,13 +115,13 @@ export class SettingsService {
 
   async createClass(dto: { name: string; code?: string; order?: number; courseId?: string }) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
     return this.prisma.class.create({ data: { ...dto, instituteId } });
   }
 
   async createSection(dto: { name: string; classId: string; capacity?: number }) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
     return this.prisma.section.create({ data: { ...dto, instituteId } });
   }
 

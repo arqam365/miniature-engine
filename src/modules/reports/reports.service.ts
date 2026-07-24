@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import dayjs from 'dayjs';
@@ -9,7 +9,7 @@ export class ReportsService {
 
   async studentStrength() {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const [total, byClass] = await Promise.all([
       this.prisma.student.count({ where: { instituteId, isActive: true } }),
@@ -38,7 +38,7 @@ export class ReportsService {
 
   async attendanceAnalytics(date: string) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const targetDate = dayjs(date).startOf('day').toDate();
 
@@ -63,7 +63,7 @@ export class ReportsService {
 
   async feeDefaulters() {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const payments = await this.prisma.feePayment.findMany({
       where: {
@@ -86,7 +86,7 @@ export class ReportsService {
 
   async examRanking(examId: string) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const results = await this.prisma.examResult.findMany({
       where: { exam: { id: examId, instituteId }, isPublished: true },

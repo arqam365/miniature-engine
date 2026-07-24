@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import * as ExcelJS from 'exceljs';
@@ -10,7 +10,7 @@ export class ExportService {
 
   async studentsExcel(): Promise<Buffer> {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const students = await this.prisma.student.findMany({
       where: { instituteId, isActive: true },
@@ -77,7 +77,7 @@ export class ExportService {
 
   async attendanceExcel(date: string): Promise<Buffer> {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     const targetDate = dayjs(date).startOf('day').toDate();
 

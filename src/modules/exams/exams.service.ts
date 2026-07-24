@@ -10,7 +10,7 @@ export class ExamsService {
 
   async create(dto: CreateExamDto) {
     const { instituteId } = requireTenantContext();
-    if (!instituteId) throw new Error('Institute context required');
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
 
     return this.prisma.exam.create({
       data: {

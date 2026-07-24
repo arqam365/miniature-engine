@@ -33,10 +33,71 @@ export class AccountsController {
     return this.accountsService.ledger(accountId);
   }
 
+  @Get('vouchers')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'List vouchers' })
+  getVouchers(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.accountsService.getVouchers(Number(page) || 1, Number(limit) || 20);
+  }
+
   @Post('vouchers')
   @RequirePermission('accounts:create')
   @ApiOperation({ summary: 'Create a voucher entry' })
   createVoucher(@Body() dto: CreateVoucherDto, @Request() req: any) {
-    return this.accountsService.createVoucher(dto, req.user?.sub);
+    return this.accountsService.createVoucher(dto, req.user?.id);
+  }
+
+  @Get('collection')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'Fee collection summary grouped by payment mode' })
+  @ApiQuery({ name: 'from', required: false })
+  @ApiQuery({ name: 'to', required: false })
+  getCollection(@Query('from') from?: string, @Query('to') to?: string) {
+    const now = new Date().toISOString().slice(0, 10);
+    const startOfMonth = now.slice(0, 8) + '01';
+    return this.accountsService.getCollection(from ?? startOfMonth, to ?? now);
+  }
+
+  @Get('cash-in-hand')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'Cash in hand for all asset accounts' })
+  getCashInHand() {
+    return this.accountsService.getCashInHand();
+  }
+
+  @Get('trial-balance')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'Trial balance as of a date' })
+  @ApiQuery({ name: 'asOf', required: false })
+  getTrialBalance(@Query('asOf') asOf?: string) {
+    const target = asOf ?? new Date().toISOString().slice(0, 10);
+    return this.accountsService.getTrialBalance(target);
+  }
+
+  @Get('receipts')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'Fee receipts with pagination and search' })
+  getReceipts(
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.accountsService.getReceipts({ search, from, to, page: Number(page), pageSize: Number(pageSize) });
+  }
+
+  @Get('vendors')
+  @RequirePermission('accounts:read')
+  @ApiOperation({ summary: 'List vendors' })
+  getVendors() {
+    return this.accountsService.getVendors();
+  }
+
+  @Post('vendors')
+  @RequirePermission('accounts:create')
+  @ApiOperation({ summary: 'Create a vendor' })
+  createVendor(@Body() dto: unknown) {
+    return this.accountsService.createVendor(dto);
   }
 }

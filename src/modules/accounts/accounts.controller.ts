@@ -97,7 +97,14 @@ export class AccountsController {
   @Post('vendors')
   @RequirePermission('accounts:create')
   @ApiOperation({ summary: 'Create a vendor' })
-  createVendor(@Body() dto: unknown) {
+  createVendor(@Body() dto: { name: string; phone?: string; email?: string; address?: string }) {
     return this.accountsService.createVendor(dto);
+  }
+
+  @Post('seed-defaults')
+  @RequirePermission('accounts:create')
+  @ApiOperation({ summary: 'Seed default chart of accounts for the institute' })
+  seedDefaultAccounts() {
+    return this.accountsService.seedDefaultAccounts();
   }
 }

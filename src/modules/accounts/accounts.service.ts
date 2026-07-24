@@ -299,11 +299,48 @@ export class AccountsService {
     };
   }
 
-  getVendors() {
-    return [];
+  async getVendors() {
+    const { instituteId } = requireTenantContext();
+    return this.prisma.vendor.findMany({
+      where: { instituteId, isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, phone: true, email: true, address: true, balance: true },
+    }).then((rows) => rows.map((v) => ({ ...v, balance: toNum(v.balance) })));
   }
 
-  createVendor(_dto: unknown) {
-    return { message: 'Vendor management coming soon.' };
+  async createVendor(dto: { name: string; phone?: string; email?: string; address?: string }) {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new NotFoundException('Institute context required');
+    return this.prisma.vendor.create({
+      data: { name: dto.name, phone: dto.phone, email: dto.email, address: dto.address, instituteId },
+      select: { id: true, name: true, phone: true, email: true, address: true, balance: true },
+    });
+  }
+
+  async seedDefaultAccounts() {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new NotFoundException('Institute context required');
+
+    const existing = await this.prisma.account.count({ where: { instituteId } });
+    if (existing > 0) return { seeded: false, message: 'Accounts already exist' };
+
+    const defaults = [
+      { code: '1000', name: 'Cash in Hand', type: 'ASSET' },
+      { code: '1001', name: 'Bank Account', type: 'ASSET' },
+      { code: '1100', name: 'Fees Receivable', type: 'ASSET' },
+      { code: '2000', name: 'Accounts Payable', type: 'LIABILITY' },
+      { code: '3000', name: 'Capital', type: 'EQUITY' },
+      { code: '4000', name: 'Fee Income', type: 'INCOME' },
+      { code: '4001', name: 'Other Income', type: 'INCOME' },
+      { code: '5000', name: 'Salaries', type: 'EXPENSE' },
+      { code: '5001', name: 'Utilities', type: 'EXPENSE' },
+      { code: '5002', name: 'Miscellaneous Expense', type: 'EXPENSE' },
+    ] as const;
+
+    await this.prisma.account.createMany({
+      data: defaults.map((a) => ({ ...a, instituteId })),
+    });
+
+    return { seeded: true, count: defaults.length };
   }
 }

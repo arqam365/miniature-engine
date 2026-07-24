@@ -17,6 +17,13 @@ export class AccountsController {
     return this.accountsService.chartOfAccounts();
   }
 
+  @Post('chart-of-accounts')
+  @RequirePermission('accounts:create')
+  @ApiOperation({ summary: 'Create a new account' })
+  createAccount(@Body() dto: { name: string; code: string; type: string }) {
+    return this.accountsService.createAccount(dto);
+  }
+
   @Get('day-book')
   @RequirePermission('accounts:read')
   @ApiOperation({ summary: 'Day book — all ledger entries for a date' })

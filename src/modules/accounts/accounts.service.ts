@@ -23,6 +23,15 @@ export class AccountsService {
     });
   }
 
+  async createAccount(dto: { name: string; code: string; type: string }) {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new NotFoundException('Institute context required');
+    return this.prisma.account.create({
+      data: { name: dto.name, code: dto.code, type: dto.type as any, instituteId },
+      select: { id: true, name: true, code: true, type: true },
+    });
+  }
+
   async dayBook(date: string) {
     const { instituteId } = requireTenantContext();
     const targetDate = dayjs(date).startOf('day').toDate();

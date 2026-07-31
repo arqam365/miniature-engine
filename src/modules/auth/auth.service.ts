@@ -113,4 +113,17 @@ export class AuthService {
     });
     return userRoles.map((ur) => ur.institute).filter(Boolean);
   }
+
+  async updateMe(userId: string, dto: { firstName?: string; lastName?: string; phone?: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { firstName: dto.firstName, lastName: dto.lastName, phone: dto.phone },
+      select: { id: true, email: true, firstName: true, lastName: true, phone: true, avatar: true },
+    });
+
+    return updated;
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -40,5 +40,19 @@ export class EmployeesController {
   @ApiOperation({ summary: 'List distinct departments' })
   getDepartments() {
     return this.employeesService.getDepartments();
+  }
+
+  @Get(':id')
+  @RequirePermission('employees:read')
+  @ApiOperation({ summary: 'Get employee by ID' })
+  findOne(@Param('id') id: string) {
+    return this.employeesService.findOne(id);
+  }
+
+  @Patch(':id')
+  @RequirePermission('employees:update')
+  @ApiOperation({ summary: 'Update employee' })
+  update(@Param('id') id: string, @Body() dto: any) {
+    return this.employeesService.update(id, dto);
   }
 }

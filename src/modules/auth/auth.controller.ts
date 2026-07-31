@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   HttpCode,
   HttpStatus,
@@ -35,6 +36,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile with permissions' })
   me(@CurrentUser('id') userId: string) {
     return this.authService.getMe(userId);
+  }
+
+  @Patch('me')
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: 'Update current user profile' })
+  updateMe(@CurrentUser('id') userId: string, @Body() dto: { firstName?: string; lastName?: string; phone?: string }) {
+    return this.authService.updateMe(userId, dto);
   }
 
   @Get('institutes')

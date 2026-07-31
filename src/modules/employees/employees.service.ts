@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { requireTenantContext } from '../tenancy/tenant-context';
@@ -73,6 +73,31 @@ export class EmployeesService {
         joinDate: new Date(dto.joinDate),
         instituteId,
       },
+    });
+
+    return { ...employee, joinDate: employee.joinDate.toISOString(), salary: employee.salary ? Number(employee.salary) : null };
+  }
+
+  async findOne(id: string) {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+
+    const employee = await this.prisma.employee.findFirst({ where: { id, instituteId } });
+    if (!employee) throw new NotFoundException('Employee not found');
+
+    return { ...employee, joinDate: employee.joinDate.toISOString(), salary: employee.salary ? Number(employee.salary) : null };
+  }
+
+  async update(id: string, dto: Partial<{ firstName: string; lastName: string; designation: string; department: string; phone: string; email: string; emergencyContact: string; salary: number; isActive: boolean }>) {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+
+    const existing = await this.prisma.employee.findFirst({ where: { id, instituteId } });
+    if (!existing) throw new NotFoundException('Employee not found');
+
+    const employee = await this.prisma.employee.update({
+      where: { id },
+      data: { ...dto, salary: dto.salary != null ? dto.salary : undefined },
     });
 
     return { ...employee, joinDate: employee.joinDate.toISOString(), salary: employee.salary ? Number(employee.salary) : null };

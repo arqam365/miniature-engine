@@ -41,14 +41,14 @@ export class GuardiansController {
   }
 
   @Post()
-  @RequirePermission('students:write')
+  @RequirePermission('students:create')
   @ApiOperation({ summary: 'Create a new guardian' })
   create(@Body() dto: CreateGuardianDto) {
     return this.guardiansService.create(dto);
   }
 
   @Post('/students/:studentId/link')
-  @RequirePermission('students:write')
+  @RequirePermission('students:create')
   @ApiOperation({ summary: 'Link guardian to a student' })
   linkToStudent(
     @Param('studentId') studentId: string,

@@ -9,7 +9,6 @@ export class GuardiansService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(params: { search?: string; page?: number; pageSize?: number }) {
-    const { instituteId } = requireTenantContext();
     const page = Number(params.page) || 1;
     const pageSize = Number(params.pageSize) || 20;
     const skip = (page - 1) * pageSize;
@@ -21,10 +20,6 @@ export class GuardiansService {
         { lastName: { contains: params.search, mode: 'insensitive' } },
         { phone: { contains: params.search, mode: 'insensitive' } },
       ];
-    }
-
-    if (instituteId) {
-      where.students = { some: { student: { instituteId } } };
     }
 
     const [raw, total] = await Promise.all([

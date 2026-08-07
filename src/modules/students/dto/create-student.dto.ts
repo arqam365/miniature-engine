@@ -11,9 +11,10 @@ export class CreateStudentDto {
   @IsString()
   firstName: string;
 
-  @ApiProperty({ example: 'Abdullah' })
+  @ApiPropertyOptional({ example: 'Abdullah' })
   @IsString()
-  lastName: string;
+  @IsOptional()
+  lastName?: string;
 
   @ApiPropertyOptional({ example: '2010-05-15' })
   @IsDateString()
@@ -59,4 +60,19 @@ export class CreateStudentDto {
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  photo?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  aadhaarFront?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  aadhaarBack?: string;
 }

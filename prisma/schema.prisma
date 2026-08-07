@@ -472,6 +472,8 @@ model Student {
   dateOfBirth    DateTime?
   gender         Gender?
   photo          String?
+  aadhaarFront   String?
+  aadhaarBack    String?
   address        String?
   city           String?
   phone          String?

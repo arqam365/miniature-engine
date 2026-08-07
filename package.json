@@ -23,6 +23,8 @@
     "linear:sync": "ts-node scripts/linear-setup.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1102.0",
+    "@aws-sdk/s3-request-presigner": "^3.1102.0",
     "@fastify/cors": "^10.0.0",
     "@fastify/helmet": "^13.0.2",
     "@fastify/multipart": "^9.0.0",

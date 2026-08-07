@@ -468,7 +468,7 @@ model Student {
   organizationId String
   instituteId    String
   firstName      String
-  lastName       String
+  lastName       String?
   dateOfBirth    DateTime?
   gender         Gender?
   photo          String?

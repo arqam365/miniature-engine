@@ -1,14 +1,21 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, PutBucketCorsCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { randomUUID } from 'crypto';
 
 @Injectable()
-export class UploadService {
+export class UploadService implements OnModuleInit {
+  private readonly logger = new Logger(UploadService.name);
+
   constructor(private readonly config: ConfigService) {}
 
-  async presign(filename: string, contentType: string, folder = 'uploads'): Promise<{ uploadUrl: string; publicUrl: string }> {
+  async onModuleInit() {
+    await this.configureBucketCors().catch((e) =>
+      this.logger.warn(`R2 CORS setup skipped: ${e.message}`),
+    );
+  }
+
+  private buildClient() {
     const accountId = this.config.get<string>('R2_ACCOUNT_ID');
     const accessKeyId = this.config.get<string>('R2_ACCESS_KEY_ID');
     const secretAccessKey = this.config.get<string>('R2_SECRET_ACCESS_KEY');
@@ -19,15 +26,41 @@ export class UploadService {
       throw new BadRequestException('File storage not configured');
     }
 
-    const safeFilename = filename.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '');
-    const safeFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\/+$/, '');
-    const key = `${safeFolder}/${Date.now()}-${safeFilename}`;
-
     const client = new S3Client({
       region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId, secretAccessKey },
     });
+
+    return { client, bucket, publicUrl };
+  }
+
+  private async configureBucketCors() {
+    const { client, bucket } = this.buildClient();
+    await client.send(
+      new PutBucketCorsCommand({
+        Bucket: bucket,
+        CORSConfiguration: {
+          CORSRules: [
+            {
+              AllowedMethods: ['PUT'],
+              AllowedOrigins: ['*'],
+              AllowedHeaders: ['*'],
+              MaxAgeSeconds: 3600,
+            },
+          ],
+        },
+      }),
+    );
+    this.logger.log('R2 CORS configured');
+  }
+
+  async presign(filename: string, contentType: string, folder = 'uploads'): Promise<{ uploadUrl: string; publicUrl: string }> {
+    const { client, bucket, publicUrl } = this.buildClient();
+
+    const safeFilename = filename.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '');
+    const safeFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\/+$/, '');
+    const key = `${safeFolder}/${Date.now()}-${safeFilename}`;
 
     const uploadUrl = await getSignedUrl(
       client,
@@ -36,31 +69,5 @@ export class UploadService {
     );
 
     return { uploadUrl, publicUrl: `${publicUrl}/${key}` };
-  }
-
-  async uploadFile(buffer: Buffer, filename: string, contentType: string, folder = 'uploads'): Promise<{ url: string }> {
-    const accountId = this.config.get<string>('R2_ACCOUNT_ID');
-    const accessKeyId = this.config.get<string>('R2_ACCESS_KEY_ID');
-    const secretAccessKey = this.config.get<string>('R2_SECRET_ACCESS_KEY');
-    const bucket = this.config.get<string>('R2_BUCKET');
-    const publicBaseUrl = this.config.get<string>('R2_PUBLIC_URL');
-
-    if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl) {
-      throw new BadRequestException('File storage not configured');
-    }
-
-    const safeFilename = filename.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '') || `${randomUUID()}.bin`;
-    const safeFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\/+$/, '');
-    const key = `${safeFolder}/${Date.now()}-${safeFilename}`;
-
-    const client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-      credentials: { accessKeyId, secretAccessKey },
-    });
-
-    await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, Body: buffer }));
-
-    return { url: `${publicBaseUrl}/${key}` };
   }
 }

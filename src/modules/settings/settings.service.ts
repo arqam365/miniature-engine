@@ -74,6 +74,21 @@ export class SettingsService {
     return this.prisma.academicYear.update({ where: { id }, data: { isActive: true } });
   }
 
+  async updateAcademicYear(id: string, dto: { name?: string; startDate?: string; endDate?: string }) {
+    return this.prisma.academicYear.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+      },
+    });
+  }
+
+  async deleteAcademicYear(id: string) {
+    return this.prisma.academicYear.delete({ where: { id } });
+  }
+
   // Roles
   async getRoles() {
     const { organizationId } = requireTenantContext();
@@ -108,7 +123,7 @@ export class SettingsService {
     if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
     return this.prisma.class.findMany({
       where: { instituteId, isActive: true },
-      include: { sections: true, classSubject: { include: { subject: true } } },
+      include: { sections: { where: { isActive: true } }, classSubject: { include: { subject: true } } },
       orderBy: { order: 'asc' },
     });
   }
@@ -119,10 +134,26 @@ export class SettingsService {
     return this.prisma.class.create({ data: { ...dto, instituteId } });
   }
 
+  async updateClass(id: string, dto: { name?: string; code?: string; order?: number }) {
+    return this.prisma.class.update({ where: { id }, data: dto });
+  }
+
+  async deleteClass(id: string) {
+    return this.prisma.class.update({ where: { id }, data: { isActive: false } });
+  }
+
   async createSection(dto: { name: string; classId: string; capacity?: number }) {
     const { instituteId } = requireTenantContext();
     if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
     return this.prisma.section.create({ data: { ...dto, instituteId } });
+  }
+
+  async updateSection(id: string, dto: { name?: string; capacity?: number }) {
+    return this.prisma.section.update({ where: { id }, data: dto });
+  }
+
+  async deleteSection(id: string) {
+    return this.prisma.section.update({ where: { id }, data: { isActive: false } });
   }
 
   // Subjects
@@ -134,6 +165,54 @@ export class SettingsService {
   async createSubject(dto: { name: string; code?: string }) {
     const { organizationId } = requireTenantContext();
     return this.prisma.subject.create({ data: { ...dto, organizationId } });
+  }
+
+  async updateSubject(id: string, dto: { name?: string; code?: string }) {
+    return this.prisma.subject.update({ where: { id }, data: dto });
+  }
+
+  async deleteSubject(id: string) {
+    return this.prisma.subject.update({ where: { id }, data: { isActive: false } });
+  }
+
+  // Courses
+  async getCourses() {
+    const { organizationId } = requireTenantContext();
+    return this.prisma.course.findMany({ where: { organizationId, isActive: true } });
+  }
+
+  async createCourse(dto: { name: string; code?: string; description?: string }) {
+    const { organizationId } = requireTenantContext();
+    return this.prisma.course.create({ data: { ...dto, organizationId } });
+  }
+
+  async updateCourse(id: string, dto: { name?: string; code?: string; description?: string }) {
+    return this.prisma.course.update({ where: { id }, data: dto });
+  }
+
+  async deleteCourse(id: string) {
+    return this.prisma.course.update({ where: { id }, data: { isActive: false } });
+  }
+
+  // Batches
+  async getBatches() {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+    return this.prisma.batch.findMany({ where: { instituteId, isActive: true } });
+  }
+
+  async createBatch(dto: { name: string; description?: string }) {
+    const { instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+    return this.prisma.batch.create({ data: { name: dto.name, description: dto.description, instituteId } });
+  }
+
+  async updateBatch(id: string, dto: { name?: string; description?: string }) {
+    return this.prisma.batch.update({ where: { id }, data: { name: dto.name, description: dto.description } });
+  }
+
+  async deleteBatch(id: string) {
+    return this.prisma.batch.update({ where: { id }, data: { isActive: false } });
   }
 
   // Student Field Config

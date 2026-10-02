@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { SettingsService } from './settings.service';
 import { RbacGuard } from '../../common/guards/rbac.guard';
@@ -41,6 +41,7 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create a new institute/campus' })
   createInstitute(@Body() dto: any) { return this.settingsService.createInstitute(dto); }
 
+  // Academic Years
   @Get('academic-years')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'List academic years' })
@@ -56,6 +57,17 @@ export class SettingsController {
   @ApiOperation({ summary: 'Set active academic year' })
   activateAcademicYear(@Param('id') id: string) { return this.settingsService.activateAcademicYear(id); }
 
+  @Put('academic-years/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update academic year' })
+  updateAcademicYear(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateAcademicYear(id, dto); }
+
+  @Delete('academic-years/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete academic year' })
+  deleteAcademicYear(@Param('id') id: string) { return this.settingsService.deleteAcademicYear(id); }
+
+  // Roles
   @Get('roles')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'List roles with permissions' })
@@ -71,6 +83,7 @@ export class SettingsController {
   @ApiOperation({ summary: 'List all available permissions' })
   getPermissions() { return this.settingsService.getAllPermissions(); }
 
+  // Classes & Sections
   @Get('classes')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'List classes with sections' })
@@ -81,11 +94,32 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create a class' })
   createClass(@Body() dto: any) { return this.settingsService.createClass(dto); }
 
+  @Put('classes/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update a class' })
+  updateClass(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateClass(id, dto); }
+
+  @Delete('classes/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a class' })
+  deleteClass(@Param('id') id: string) { return this.settingsService.deleteClass(id); }
+
   @Post('sections')
   @RequirePermission('settings:update')
   @ApiOperation({ summary: 'Create a section' })
   createSection(@Body() dto: any) { return this.settingsService.createSection(dto); }
 
+  @Put('sections/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update a section' })
+  updateSection(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateSection(id, dto); }
+
+  @Delete('sections/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a section' })
+  deleteSection(@Param('id') id: string) { return this.settingsService.deleteSection(id); }
+
+  // Subjects
   @Get('subjects')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'List subjects' })
@@ -96,6 +130,59 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create a subject' })
   createSubject(@Body() dto: any) { return this.settingsService.createSubject(dto); }
 
+  @Put('subjects/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update a subject' })
+  updateSubject(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateSubject(id, dto); }
+
+  @Delete('subjects/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a subject' })
+  deleteSubject(@Param('id') id: string) { return this.settingsService.deleteSubject(id); }
+
+  // Courses
+  @Get('courses')
+  @RequirePermission('settings:read')
+  @ApiOperation({ summary: 'List courses / programs' })
+  getCourses() { return this.settingsService.getCourses(); }
+
+  @Post('courses')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Create a course / program' })
+  createCourse(@Body() dto: any) { return this.settingsService.createCourse(dto); }
+
+  @Put('courses/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update a course / program' })
+  updateCourse(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateCourse(id, dto); }
+
+  @Delete('courses/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a course / program' })
+  deleteCourse(@Param('id') id: string) { return this.settingsService.deleteCourse(id); }
+
+  // Batches
+  @Get('batches')
+  @RequirePermission('settings:read')
+  @ApiOperation({ summary: 'List batches' })
+  getBatches() { return this.settingsService.getBatches(); }
+
+  @Post('batches')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Create a batch' })
+  createBatch(@Body() dto: any) { return this.settingsService.createBatch(dto); }
+
+  @Put('batches/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update a batch' })
+  updateBatch(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateBatch(id, dto); }
+
+  @Delete('batches/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a batch' })
+  deleteBatch(@Param('id') id: string) { return this.settingsService.deleteBatch(id); }
+
+  // Student Fields
   @Get('student-fields')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'Get dynamic student profile field configuration' })

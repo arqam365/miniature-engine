@@ -417,6 +417,7 @@ model Section {
 model Batch {
   id          String    @id @default(cuid())
   name        String
+  description String?
   instituteId String
   startDate   DateTime?
   endDate     DateTime?

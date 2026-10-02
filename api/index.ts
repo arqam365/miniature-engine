@@ -9,12 +9,14 @@ import { SanitizePipe } from '../src/common/pipes/sanitize.pipe';
 const express = require('express');
 
 const server = express();
-server.use('/api/v1/upload', express.raw({ type: '*/*', limit: '10mb' }));
+server.use(express.json({ limit: '10mb' }));
+server.use(express.urlencoded({ extended: true, limit: '10mb' }));
 let bootstrapError: unknown;
 
 const ready = (async () => {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
     logger: ['error', 'warn'],
+    bodyParser: false,
   });
 
   app.enableCors({

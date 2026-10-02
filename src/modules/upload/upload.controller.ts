@@ -1,7 +1,15 @@
-import { Controller, Post, Query, Req, BadRequestException } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiQuery, ApiConsumes } from '@nestjs/swagger';
+import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { IsString, IsOptional } from 'class-validator';
 import { UploadService } from './upload.service';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
+
+class UploadBodyDto {
+  @IsString() data: string;
+  @IsString() filename: string;
+  @IsString() contentType: string;
+  @IsString() @IsOptional() folder?: string;
+}
 
 @ApiTags('upload')
 @ApiBearerAuth('access-token')
@@ -11,20 +19,9 @@ export class UploadController {
 
   @Post()
   @RequirePermission('students:create')
-  @ApiConsumes('application/octet-stream', 'image/*')
-  @ApiQuery({ name: 'filename', required: true })
-  @ApiQuery({ name: 'contentType', required: true })
-  @ApiQuery({ name: 'folder', required: false })
-  async upload(
-    @Req() req: any,
-    @Query('filename') filename: string,
-    @Query('contentType') contentType: string,
-    @Query('folder') folder?: string,
-  ) {
-    const body = req.body;
-    if (!Buffer.isBuffer(body) || body.length === 0) {
-      throw new BadRequestException('Empty or invalid file body');
-    }
-    return this.uploadService.uploadFile(body, filename, contentType, folder);
+  async upload(@Body() body: UploadBodyDto) {
+    const buffer = Buffer.from(body.data, 'base64');
+    if (buffer.length === 0) throw new BadRequestException('Empty file');
+    return this.uploadService.uploadFile(buffer, body.filename, body.contentType, body.folder);
   }
 }

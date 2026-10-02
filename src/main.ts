@@ -12,13 +12,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: process.env.NODE_ENV === 'development' }),
+    new FastifyAdapter({ logger: process.env.NODE_ENV === 'development', bodyLimit: 10 * 1024 * 1024 }),
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await app.register(helmet as any, { contentSecurityPolicy: false });
-
-  app.getHttpAdapter().getInstance().addContentTypeParser('*', { parseAs: 'buffer' }, (_req: any, body: Buffer, done: (err: null, body: Buffer) => void) => done(null, body));
 
   const allowedOrigins = [
     'http://localhost:3000',

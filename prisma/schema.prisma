@@ -483,6 +483,7 @@ model Student {
   nationality    String?
   bloodGroup     String?
   category       String?
+  rationCard     String?
   isActive       Boolean   @default(true)
   admittedAt     DateTime  @default(now())
   createdAt      DateTime  @default(now())

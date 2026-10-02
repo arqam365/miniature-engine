@@ -80,4 +80,9 @@ export class CreateStudentDto {
   @IsString()
   @IsOptional()
   category?: string;
+
+  @ApiPropertyOptional({ example: 'RC-1234567890' })
+  @IsString()
+  @IsOptional()
+  rationCard?: string;
 }

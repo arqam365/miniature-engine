@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { SanitizePipe } from './common/pipes/sanitize.pipe';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -17,6 +18,7 @@ async function bootstrap() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await app.register(helmet as any, { contentSecurityPolicy: false });
+  await app.register(multipart as any, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   const allowedOrigins = [
     'http://localhost:3000',

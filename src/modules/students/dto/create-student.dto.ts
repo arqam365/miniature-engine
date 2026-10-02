@@ -75,4 +75,9 @@ export class CreateStudentDto {
   @IsString()
   @IsOptional()
   aadhaarBack?: string;
+
+  @ApiPropertyOptional({ example: 'General', description: 'Student category e.g. General / OBC / SC / ST / EWS' })
+  @IsString()
+  @IsOptional()
+  category?: string;
 }

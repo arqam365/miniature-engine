@@ -482,6 +482,7 @@ model Student {
   religion       String?
   nationality    String?
   bloodGroup     String?
+  category       String?
   isActive       Boolean   @default(true)
   admittedAt     DateTime  @default(now())
   createdAt      DateTime  @default(now())

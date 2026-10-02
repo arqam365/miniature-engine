@@ -509,7 +509,8 @@ model Guardian {
   firstName    String
   lastName     String
   relationship String
-  phone        String
+  phone           String
+  whatsappNumber  String?
   email        String?
   occupation   String?
   address      String?

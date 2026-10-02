@@ -23,6 +23,11 @@ export class CreateGuardianDto {
   phone: string;
 
   @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  whatsappNumber?: string;
+
+  @ApiPropertyOptional()
   @IsEmail()
   @IsOptional()
   email?: string;

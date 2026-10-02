@@ -1,10 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UploadService {
+  private readonly logger = new Logger(UploadService.name);
   constructor(private readonly config: ConfigService) {}
 
   private buildClient() {
@@ -36,7 +37,12 @@ export class UploadService {
     const safeFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\/+$/, '');
     const key = `${safeFolder}/${Date.now()}-${safe}`;
 
-    await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, Body: buffer }));
+    try {
+      await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, Body: buffer }));
+    } catch (err) {
+      this.logger.error('R2 upload failed', err);
+      throw new BadRequestException(`Upload failed: ${(err as Error).message}`);
+    }
 
     return { url: `${publicUrl}/${key}` };
   }

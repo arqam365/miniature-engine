@@ -1,19 +1,11 @@
-import { Injectable, BadRequestException, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, PutBucketCorsCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { randomUUID } from 'crypto';
 
 @Injectable()
-export class UploadService implements OnModuleInit {
-  private readonly logger = new Logger(UploadService.name);
-
+export class UploadService {
   constructor(private readonly config: ConfigService) {}
-
-  async onModuleInit() {
-    await this.configureBucketCors().catch((e) =>
-      this.logger.warn(`R2 CORS setup skipped: ${e.message}`),
-    );
-  }
 
   private buildClient() {
     const accountId = this.config.get<string>('R2_ACCOUNT_ID');
@@ -26,48 +18,26 @@ export class UploadService implements OnModuleInit {
       throw new BadRequestException('File storage not configured');
     }
 
-    const client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-      credentials: { accessKeyId, secretAccessKey },
-    });
-
-    return { client, bucket, publicUrl };
-  }
-
-  private async configureBucketCors() {
-    const { client, bucket } = this.buildClient();
-    await client.send(
-      new PutBucketCorsCommand({
-        Bucket: bucket,
-        CORSConfiguration: {
-          CORSRules: [
-            {
-              AllowedMethods: ['PUT'],
-              AllowedOrigins: ['*'],
-              AllowedHeaders: ['*'],
-              MaxAgeSeconds: 3600,
-            },
-          ],
-        },
+    return {
+      client: new S3Client({
+        region: 'auto',
+        endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+        credentials: { accessKeyId, secretAccessKey },
       }),
-    );
-    this.logger.log('R2 CORS configured');
+      bucket,
+      publicUrl,
+    };
   }
 
-  async presign(filename: string, contentType: string, folder = 'uploads'): Promise<{ uploadUrl: string; publicUrl: string }> {
+  async uploadFile(buffer: Buffer, filename: string, contentType: string, folder = 'uploads'): Promise<{ url: string }> {
     const { client, bucket, publicUrl } = this.buildClient();
 
-    const safeFilename = filename.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '');
+    const safe = filename.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9.\-_]/g, '') || `${randomUUID()}.bin`;
     const safeFolder = folder.replace(/[^a-zA-Z0-9/_-]/g, '').replace(/\/+$/, '');
-    const key = `${safeFolder}/${Date.now()}-${safeFilename}`;
+    const key = `${safeFolder}/${Date.now()}-${safe}`;
 
-    const uploadUrl = await getSignedUrl(
-      client,
-      new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType }),
-      { expiresIn: 300 },
-    );
+    await client.send(new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, Body: buffer }));
 
-    return { uploadUrl, publicUrl: `${publicUrl}/${key}` };
+    return { url: `${publicUrl}/${key}` };
   }
 }

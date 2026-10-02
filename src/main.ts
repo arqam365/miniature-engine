@@ -18,6 +18,8 @@ async function bootstrap() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await app.register(helmet as any, { contentSecurityPolicy: false });
 
+  app.getHttpAdapter().getInstance().addContentTypeParser('*', { parseAs: 'buffer' }, (_req: any, body: Buffer, done: (err: null, body: Buffer) => void) => done(null, body));
+
   const allowedOrigins = [
     'http://localhost:3000',
     ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),

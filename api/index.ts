@@ -9,6 +9,7 @@ import { SanitizePipe } from '../src/common/pipes/sanitize.pipe';
 const express = require('express');
 
 const server = express();
+server.use('/api/v1/upload', express.raw({ type: '*/*', limit: '10mb' }));
 let bootstrapError: unknown;
 
 const ready = (async () => {

@@ -3,6 +3,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { EnrollStudentDto } from './dto/enroll-student.dto';
+import { BulkImportStudentsDto } from './dto/bulk-import-student.dto';
 import { RbacGuard } from '../../common/guards/rbac.guard';
 import { RequirePermission } from '../../common/decorators/require-permission.decorator';
 
@@ -18,6 +19,13 @@ export class StudentsController {
   @ApiOperation({ summary: 'Admit a new student' })
   create(@Body() dto: CreateStudentDto) {
     return this.studentsService.create(dto);
+  }
+
+  @Post('bulk-import')
+  @RequirePermission('students:create')
+  @ApiOperation({ summary: 'Bulk import students from CSV/Excel data' })
+  bulkImport(@Body() dto: BulkImportStudentsDto) {
+    return this.studentsService.bulkImport(dto);
   }
 
   @Get()

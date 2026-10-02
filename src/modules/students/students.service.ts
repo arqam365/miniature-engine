@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException, BadRequestException }
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { EnrollStudentDto } from './dto/enroll-student.dto';
+import { BulkImportStudentsDto } from './dto/bulk-import-student.dto';
 import { requireTenantContext } from '../tenancy/tenant-context';
 
 @Injectable()
@@ -169,5 +170,86 @@ export class StudentsService {
       where: { id },
       data: { isActive: false },
     });
+  }
+
+  async bulkImport(dto: BulkImportStudentsDto) {
+    const { organizationId, instituteId } = requireTenantContext();
+    if (!instituteId) throw new BadRequestException('X-Institute-Id header required');
+
+    const results: Array<{ row: number; admissionNo: string; status: 'success' | 'error'; message?: string }> = [];
+
+    for (const [i, row] of dto.rows.entries()) {
+      try {
+        // Find or create guardian by phone within this org
+        let guardian = await this.prisma.guardian.findFirst({
+          where: { phone: row.guardianPhone, students: { some: { student: { organizationId } } } },
+        });
+        if (!guardian) {
+          guardian = await this.prisma.guardian.create({
+            data: {
+              firstName: row.guardianFirstName,
+              lastName: row.guardianLastName,
+              relationship: row.guardianRelationship,
+              phone: row.guardianPhone,
+              whatsappNumber: row.guardianWhatsApp || null,
+              email: row.guardianEmail || null,
+              occupation: row.guardianOccupation || null,
+            },
+          });
+        }
+
+        // Create student
+        const student = await this.prisma.student.create({
+          data: {
+            admissionNo: row.admissionNo,
+            firstName: row.firstName,
+            lastName: row.lastName || null,
+            dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
+            gender: (row.gender as any) || null,
+            phone: row.phone || null,
+            email: row.email || null,
+            religion: row.religion || null,
+            nationality: row.nationality || null,
+            bloodGroup: row.bloodGroup || null,
+            city: row.city || null,
+            address: row.address || null,
+            category: row.category || null,
+            rationCard: row.rationCard || null,
+            organizationId,
+            instituteId,
+          },
+        });
+
+        // Enroll if academicYear + className provided
+        if (row.academicYear && row.className) {
+          const [year, cls] = await Promise.all([
+            this.prisma.academicYear.findFirst({ where: { name: row.academicYear, organizationId } }),
+            this.prisma.class.findFirst({ where: { name: row.className, instituteId } }),
+          ]);
+          if (year && cls) {
+            let sectionId: string | null = null;
+            if (row.section) {
+              const sec = await this.prisma.section.findFirst({ where: { name: row.section, classId: cls.id } });
+              sectionId = sec?.id ?? null;
+            }
+            await this.prisma.enrollment.create({
+              data: { studentId: student.id, academicYearId: year.id, classId: cls.id, sectionId, instituteId, rollNumber: row.rollNumber || null, isActive: true },
+            });
+          }
+        }
+
+        // Link guardian as primary
+        await this.prisma.studentGuardian.create({
+          data: { studentId: student.id, guardianId: guardian.id, isPrimary: true },
+        });
+
+        results.push({ row: i + 1, admissionNo: row.admissionNo, status: 'success' });
+      } catch (err: any) {
+        const msg = err?.code === 'P2002' ? 'Admission number already exists' : (err?.message ?? 'Unknown error');
+        results.push({ row: i + 1, admissionNo: row.admissionNo, status: 'error', message: msg });
+      }
+    }
+
+    return results;
   }
 }

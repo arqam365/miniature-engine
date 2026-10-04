@@ -25,7 +25,7 @@ export class AttendanceService {
           studentId_date_subjectId: {
             studentId: r.studentId,
             date,
-            subjectId,
+            subjectId: subjectId as string,
           },
         },
         update: { status: r.status, remarks: r.remarks, markedById: userId },

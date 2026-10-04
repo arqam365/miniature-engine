@@ -17,13 +17,15 @@ export class AttendanceService {
 
     const date = new Date(dto.date);
 
+    const subjectId = dto.subjectId ?? null;
+
     const operations = dto.records.map((r) =>
       this.prisma.attendanceRecord.upsert({
         where: {
           studentId_date_subjectId: {
             studentId: r.studentId,
             date,
-            subjectId: dto.subjectId ?? '',
+            subjectId,
           },
         },
         update: { status: r.status, remarks: r.remarks, markedById: userId },
@@ -31,7 +33,7 @@ export class AttendanceService {
           studentId: r.studentId,
           instituteId,
           sectionId: dto.sectionId,
-          subjectId: dto.subjectId,
+          subjectId,
           date,
           status: r.status,
           remarks: r.remarks,
@@ -48,7 +50,7 @@ export class AttendanceService {
   async getSectionAttendance(sectionId: string, date: string) {
     const { instituteId } = requireTenantContext();
     return this.prisma.attendanceRecord.findMany({
-      where: { sectionId, instituteId, date: new Date(date) },
+      where: { sectionId, instituteId, date: new Date(date), subjectId: null },
       include: { student: { select: { id: true, firstName: true, lastName: true, admissionNo: true } } },
     });
   }
@@ -59,7 +61,7 @@ export class AttendanceService {
     const end = new Date(year, month, 0);
 
     const records = await this.prisma.attendanceRecord.findMany({
-      where: { sectionId, instituteId, date: { gte: start, lte: end } },
+      where: { sectionId, instituteId, subjectId: null, date: { gte: start, lte: end } },
       include: { student: { select: { id: true, firstName: true, lastName: true, admissionNo: true } } },
       orderBy: [{ date: 'asc' }, { student: { admissionNo: 'asc' } }],
     });
@@ -102,7 +104,7 @@ export class AttendanceService {
     const end = new Date(to);
 
     const records = await this.prisma.attendanceRecord.findMany({
-      where: { instituteId, sectionId, date: { gte: start, lte: end } },
+      where: { instituteId, sectionId, subjectId: null, date: { gte: start, lte: end } },
       include: { student: { select: { id: true, firstName: true, lastName: true, admissionNo: true } } },
     });
 

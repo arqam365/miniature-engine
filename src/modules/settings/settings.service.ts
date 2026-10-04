@@ -113,6 +113,41 @@ export class SettingsService {
     });
   }
 
+  async updateRole(id: string, dto: { name?: string; description?: string; permissionIds?: string[] }) {
+    const { organizationId } = requireTenantContext();
+    const role = await this.prisma.role.findFirst({ where: { id, organizationId } });
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.isSystem) throw new BadRequestException('Cannot modify system roles');
+
+    return this.prisma.$transaction(async (tx) => {
+      if (dto.permissionIds !== undefined) {
+        await tx.rolePermission.deleteMany({ where: { roleId: id } });
+        if (dto.permissionIds.length) {
+          await tx.rolePermission.createMany({
+            data: dto.permissionIds.map((permissionId) => ({ roleId: id, permissionId })),
+          });
+        }
+      }
+      return tx.role.update({
+        where: { id },
+        data: {
+          ...(dto.name !== undefined && { name: dto.name }),
+          ...(dto.description !== undefined && { description: dto.description }),
+        },
+        include: { rolePermissions: { include: { permission: true } } },
+      });
+    });
+  }
+
+  async deleteRole(id: string) {
+    const { organizationId } = requireTenantContext();
+    const role = await this.prisma.role.findFirst({ where: { id, organizationId } });
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.isSystem) throw new BadRequestException('Cannot delete system roles');
+    await this.prisma.role.delete({ where: { id } });
+    return { success: true };
+  }
+
   async getAllPermissions() {
     return this.prisma.permission.findMany({ orderBy: [{ module: 'asc' }, { action: 'asc' }] });
   }

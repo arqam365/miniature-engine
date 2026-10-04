@@ -78,6 +78,16 @@ export class SettingsController {
   @ApiOperation({ summary: 'Create a custom role' })
   createRole(@Body() dto: any) { return this.settingsService.createRole(dto); }
 
+  @Put('roles/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Update role name, description, or permissions' })
+  updateRole(@Param('id') id: string, @Body() dto: any) { return this.settingsService.updateRole(id, dto); }
+
+  @Delete('roles/:id')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Delete a custom role' })
+  deleteRole(@Param('id') id: string) { return this.settingsService.deleteRole(id); }
+
   @Get('permissions')
   @RequirePermission('settings:read')
   @ApiOperation({ summary: 'List all available permissions' })

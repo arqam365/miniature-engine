@@ -15,6 +15,8 @@ const EMPLOYEE_SELECT = {
   email: true,
   emergencyContact: true,
   salary: true,
+  address: true,
+  teacherIdNo: true,
   joinDate: true,
   status: true,
   isActive: true,
@@ -94,6 +96,8 @@ export class EmployeesService {
         email: dto.email,
         emergencyContact: dto.emergencyContact,
         salary: dto.salary,
+        address: dto.address,
+        teacherIdNo: dto.teacherIdNo,
         joinDate: new Date(dto.joinDate),
         instituteId,
       },
@@ -129,6 +133,8 @@ export class EmployeesService {
       isActive: boolean;
       status: EmploymentStatus;
       roleId: string | null;
+      address: string;
+      teacherIdNo: string;
     }>,
   ) {
     const { instituteId } = requireTenantContext();
@@ -148,6 +154,8 @@ export class EmployeesService {
         ...(dto.email !== undefined && { email: dto.email }),
         ...(dto.emergencyContact !== undefined && { emergencyContact: dto.emergencyContact }),
         ...(dto.salary !== undefined && { salary: dto.salary }),
+        ...(dto.address !== undefined && { address: dto.address }),
+        ...(dto.teacherIdNo !== undefined && { teacherIdNo: dto.teacherIdNo }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         ...(dto.status !== undefined && { status: dto.status }),
         ...('roleId' in dto && { roleId: dto.roleId }),

@@ -1093,6 +1093,8 @@ model Employee {
   email            String?
   emergencyContact String?
   salary           Decimal?         @db.Decimal(12, 2)
+  address          String?
+  teacherIdNo      String?
   joinDate         DateTime
   status           EmploymentStatus @default(ACTIVE)
   instituteId      String

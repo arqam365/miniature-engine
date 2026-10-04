@@ -10,5 +10,7 @@ export class CreateEmployeeDto {
   @ApiPropertyOptional() @IsOptional() @IsString() email?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() emergencyContact?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) salary?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() address?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() teacherIdNo?: string;
   @ApiProperty() @IsDateString() joinDate: string;
 }

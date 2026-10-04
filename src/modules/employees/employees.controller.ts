@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Query, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
@@ -44,15 +44,36 @@ export class EmployeesController {
 
   @Get(':id')
   @RequirePermission('employees:read')
-  @ApiOperation({ summary: 'Get employee by ID' })
+  @ApiOperation({ summary: 'Get employee by ID (includes role + permissions)' })
   findOne(@Param('id') id: string) {
     return this.employeesService.findOne(id);
   }
 
   @Patch(':id')
   @RequirePermission('employees:update')
-  @ApiOperation({ summary: 'Update employee' })
+  @ApiOperation({ summary: 'Update employee (supports roleId, status, isActive)' })
   update(@Param('id') id: string, @Body() dto: any) {
     return this.employeesService.update(id, dto);
+  }
+
+  @Get(':id/sections')
+  @RequirePermission('employees:read')
+  @ApiOperation({ summary: 'List sections assigned to employee' })
+  getSections(@Param('id') id: string) {
+    return this.employeesService.getSections(id);
+  }
+
+  @Post(':id/sections')
+  @RequirePermission('employees:update')
+  @ApiOperation({ summary: 'Assign employee to a section' })
+  assignSection(@Param('id') id: string, @Body('sectionId') sectionId: string) {
+    return this.employeesService.assignSection(id, sectionId);
+  }
+
+  @Delete(':id/sections/:sectionId')
+  @RequirePermission('employees:update')
+  @ApiOperation({ summary: 'Remove employee from a section' })
+  unassignSection(@Param('id') id: string, @Param('sectionId') sectionId: string) {
+    return this.employeesService.unassignSection(id, sectionId);
   }
 }

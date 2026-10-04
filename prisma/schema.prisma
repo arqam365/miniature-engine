@@ -243,6 +243,7 @@ model Role {
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rolePermissions RolePermission[]
   userRoles       UserRole[]
+  employees       Employee[]
 
   @@unique([organizationId, name])
   @@map("roles")
@@ -406,10 +407,11 @@ model Section {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  class       Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
-  institute   Institute          @relation(fields: [instituteId], references: [id], onDelete: Cascade)
-  enrollments Enrollment[]
-  attendance  AttendanceRecord[]
+  class            Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  institute        Institute          @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  enrollments      Enrollment[]
+  attendance       AttendanceRecord[]
+  employeeSections EmployeeSection[]
 
   @@map("sections")
 }
@@ -1098,11 +1100,29 @@ model Employee {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  institute Institute @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  roleId   String?
+  role     Role?   @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  institute        Institute         @relation(fields: [instituteId], references: [id], onDelete: Cascade)
+  employeeSections EmployeeSection[]
 
   @@unique([instituteId, employeeId])
   @@index([instituteId])
+  @@index([roleId])
   @@map("employees")
+}
+
+model EmployeeSection {
+  id         String   @id @default(cuid())
+  employeeId String
+  sectionId  String
+  createdAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  section  Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, sectionId])
+  @@map("employee_sections")
 }
 
 // ─────────────────────────────────────────────

@@ -5,7 +5,7 @@ import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 import { requireTenantContext } from '../tenancy/tenant-context';
 import { AttendanceGateway } from '../realtime/attendance.gateway';
 import { RevengageWhatsappService, AbsenceAlertRecipient } from '../whatsapp/revengage-whatsapp.service';
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class AttendanceService {

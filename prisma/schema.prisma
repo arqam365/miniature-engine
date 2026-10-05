@@ -959,10 +959,15 @@ model OrgSettings {
   smtpUser       String?
   smtpPassword   String?
   smtpFrom       String?
-  smsGateway     String?
-  smsApiKey      String?
-  smsSenderId    String?
-  updatedAt      DateTime @updatedAt
+  smsGateway              String?
+  smsApiKey               String?
+  smsSenderId             String?
+  whatsappProvider        String?  // 'revengage' | 'generic'
+  whatsappApiKey          String?
+  whatsappApiUrl          String?
+  whatsappTemplateId      String?
+  whatsappMessageTemplate String?  // used by generic provider, supports {{guardianName}} {{studentName}} {{admissionNo}} {{date}}
+  updatedAt               DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 

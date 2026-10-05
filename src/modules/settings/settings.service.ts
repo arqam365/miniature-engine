@@ -250,6 +250,62 @@ export class SettingsService {
     return this.prisma.batch.update({ where: { id }, data: { isActive: false } });
   }
 
+  // WhatsApp Integration
+  async getWhatsappConfig() {
+    const { organizationId } = requireTenantContext();
+    const s = await this.prisma.orgSettings.findUnique({ where: { organizationId } });
+    return {
+      provider: s?.whatsappProvider ?? null,
+      apiKey: s?.whatsappApiKey ? '••••••••' : null, // never return plaintext key
+      apiUrl: s?.whatsappApiUrl ?? null,
+      templateId: s?.whatsappTemplateId ?? null,
+      messageTemplate: s?.whatsappMessageTemplate ?? null,
+      configured: !!s?.whatsappApiKey,
+    };
+  }
+
+  async updateWhatsappConfig(dto: {
+    provider?: string;
+    apiKey?: string;
+    apiUrl?: string;
+    templateId?: string;
+    messageTemplate?: string;
+  }) {
+    const { organizationId } = requireTenantContext();
+    return this.prisma.orgSettings.upsert({
+      where: { organizationId },
+      update: {
+        whatsappProvider: dto.provider,
+        ...(dto.apiKey && dto.apiKey !== '••••••••' && { whatsappApiKey: dto.apiKey }),
+        whatsappApiUrl: dto.apiUrl ?? null,
+        whatsappTemplateId: dto.templateId ?? null,
+        whatsappMessageTemplate: dto.messageTemplate ?? null,
+      },
+      create: {
+        organizationId,
+        whatsappProvider: dto.provider,
+        whatsappApiKey: dto.apiKey,
+        whatsappApiUrl: dto.apiUrl,
+        whatsappTemplateId: dto.templateId,
+        whatsappMessageTemplate: dto.messageTemplate,
+      },
+    });
+  }
+
+  async disconnectWhatsapp() {
+    const { organizationId } = requireTenantContext();
+    return this.prisma.orgSettings.update({
+      where: { organizationId },
+      data: {
+        whatsappProvider: null,
+        whatsappApiKey: null,
+        whatsappApiUrl: null,
+        whatsappTemplateId: null,
+        whatsappMessageTemplate: null,
+      },
+    });
+  }
+
   // Student Field Config
   async getStudentFieldConfig() {
     const { organizationId } = requireTenantContext();

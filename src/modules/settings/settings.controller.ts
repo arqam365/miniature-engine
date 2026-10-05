@@ -192,6 +192,22 @@ export class SettingsController {
   @ApiOperation({ summary: 'Delete a batch' })
   deleteBatch(@Param('id') id: string) { return this.settingsService.deleteBatch(id); }
 
+  // WhatsApp Integration
+  @Get('whatsapp')
+  @RequirePermission('settings:read')
+  @ApiOperation({ summary: 'Get WhatsApp integration config (API key masked)' })
+  getWhatsappConfig() { return this.settingsService.getWhatsappConfig(); }
+
+  @Put('whatsapp')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Save WhatsApp provider config' })
+  updateWhatsappConfig(@Body() dto: any) { return this.settingsService.updateWhatsappConfig(dto); }
+
+  @Delete('whatsapp')
+  @RequirePermission('settings:update')
+  @ApiOperation({ summary: 'Disconnect WhatsApp integration' })
+  disconnectWhatsapp() { return this.settingsService.disconnectWhatsapp(); }
+
   // Student Fields
   @Get('student-fields')
   @RequirePermission('settings:read')

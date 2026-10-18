@@ -142,6 +142,20 @@ export class StudentsService {
     });
   }
 
+  async updateEnrollment(studentId: string, enrollmentId: string, dto: Partial<EnrollStudentDto>) {
+    const { instituteId } = requireTenantContext();
+    return this.prisma.enrollment.update({
+      where: { id: enrollmentId, studentId, instituteId },
+      data: {
+        ...(dto.classId && { classId: dto.classId }),
+        ...(dto.academicYearId && { academicYearId: dto.academicYearId }),
+        sectionId: dto.sectionId || undefined,
+        rollNumber: dto.rollNumber || undefined,
+      },
+      include: { class: true, section: true, academicYear: true },
+    });
+  }
+
   async getAttendanceSummary(studentId: string, month: number, year: number) {
     const { instituteId } = requireTenantContext();
     const start = new Date(year, month - 1, 1);
@@ -180,17 +194,19 @@ export class StudentsService {
 
     for (const [i, row] of dto.rows.entries()) {
       try {
-        // Find or create guardian by phone within this org
-        let guardian = await this.prisma.guardian.findFirst({
-          where: { phone: row.guardianPhone, students: { some: { student: { organizationId } } } },
-        });
+        // Find or create guardian — dedup by phone only when phone is present
+        let guardian = row.guardianPhone
+          ? await this.prisma.guardian.findFirst({
+              where: { phone: row.guardianPhone, students: { some: { student: { organizationId } } } },
+            })
+          : null;
         if (!guardian) {
           guardian = await this.prisma.guardian.create({
             data: {
               firstName: row.guardianFirstName,
               lastName: row.guardianLastName || null,
               relationship: row.guardianRelationship || 'Guardian',
-              phone: row.guardianPhone,
+              phone: row.guardianPhone || null,
               whatsappNumber: row.guardianWhatsApp || null,
               email: row.guardianEmail || null,
               occupation: row.guardianOccupation || null,

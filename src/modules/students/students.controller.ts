@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, Query, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
@@ -59,6 +59,17 @@ export class StudentsController {
   @ApiOperation({ summary: 'Enroll student in a class/section/batch' })
   enroll(@Param('id') id: string, @Body() dto: EnrollStudentDto) {
     return this.studentsService.enroll(id, dto);
+  }
+
+  @Patch(':id/enrollments/:enrollmentId')
+  @RequirePermission('students:update')
+  @ApiOperation({ summary: 'Update an existing enrollment record' })
+  updateEnrollment(
+    @Param('id') id: string,
+    @Param('enrollmentId') enrollmentId: string,
+    @Body() dto: Partial<EnrollStudentDto>,
+  ) {
+    return this.studentsService.updateEnrollment(id, enrollmentId, dto);
   }
 
   @Get(':id/attendance-summary')

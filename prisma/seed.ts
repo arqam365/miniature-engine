@@ -24,6 +24,9 @@ const PERMISSIONS = [
   { module: 'reports', action: 'read' }, { module: 'reports', action: 'export' },
   // Settings
   { module: 'settings', action: 'read' }, { module: 'settings', action: 'update' },
+  // Employees
+  { module: 'employees', action: 'create' }, { module: 'employees', action: 'read' },
+  { module: 'employees', action: 'update' }, { module: 'employees', action: 'delete' },
   // Madrasa
   { module: 'madrasa', action: 'create' }, { module: 'madrasa', action: 'read' },
   { module: 'madrasa', action: 'update' },
@@ -92,6 +95,11 @@ async function main() {
         },
       },
     },
+  });
+  // Sync: grant any new permissions to existing Admin role (handles re-runs after new modules added)
+  await prisma.rolePermission.createMany({
+    data: allPermissions.map((p) => ({ roleId: adminRole.id, permissionId: p.id })),
+    skipDuplicates: true,
   });
 
   // Create principal role

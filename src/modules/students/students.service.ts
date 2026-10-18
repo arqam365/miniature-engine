@@ -188,7 +188,7 @@ export class StudentsService {
           guardian = await this.prisma.guardian.create({
             data: {
               firstName: row.guardianFirstName,
-              lastName: row.guardianLastName,
+              lastName: row.guardianLastName || null,
               relationship: row.guardianRelationship,
               phone: row.guardianPhone,
               whatsappNumber: row.guardianWhatsApp || null,

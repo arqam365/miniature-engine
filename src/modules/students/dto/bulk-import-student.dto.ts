@@ -18,7 +18,7 @@ export class BulkImportRowDto {
   @IsString() @IsOptional() rationCard?: string;
   @IsString() guardianFirstName: string;
   @IsString() @IsOptional() guardianLastName?: string;
-  @IsString() guardianRelationship: string;
+  @IsString() @IsOptional() guardianRelationship?: string;
   @IsString() guardianPhone: string;
   @IsString() @IsOptional() guardianWhatsApp?: string;
   @IsString() @IsOptional() guardianEmail?: string;

@@ -189,7 +189,7 @@ export class StudentsService {
             data: {
               firstName: row.guardianFirstName,
               lastName: row.guardianLastName || null,
-              relationship: row.guardianRelationship,
+              relationship: row.guardianRelationship || 'Guardian',
               phone: row.guardianPhone,
               whatsappNumber: row.guardianWhatsApp || null,
               email: row.guardianEmail || null,

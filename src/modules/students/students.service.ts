@@ -129,9 +129,9 @@ export class StudentsService {
         instituteId,
         classId: dto.classId,
         academicYearId: dto.academicYearId,
-        sectionId: dto.sectionId,
-        batchId: dto.batchId,
-        rollNumber: dto.rollNumber,
+        sectionId: dto.sectionId || undefined,
+        batchId: dto.batchId || undefined,
+        rollNumber: dto.rollNumber || undefined,
         isActive: true,
       },
       include: {

@@ -6,9 +6,10 @@ export class CreateExamDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  examTypeId: string;
+  @IsOptional()
+  examTypeId?: string;
 
   @ApiProperty()
   @IsString()
@@ -27,11 +28,13 @@ export class CreateExamDto {
   @IsDateString()
   endDate: string;
 
-  @ApiProperty({ example: 100 })
+  @ApiPropertyOptional({ example: 100 })
   @IsNumber()
-  totalMarks: number;
+  @IsOptional()
+  totalMarks?: number;
 
-  @ApiProperty({ example: 40 })
+  @ApiPropertyOptional({ example: 40 })
   @IsNumber()
-  passingMarks: number;
+  @IsOptional()
+  passingMarks?: number;
 }

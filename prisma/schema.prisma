@@ -67,6 +67,20 @@ enum ExamStatus {
   CANCELLED
 }
 
+enum ComponentType {
+  WRITTEN
+  ORAL
+  PRACTICAL
+  PROJECT
+  ASSIGNMENT
+  CUSTOM
+}
+
+enum ComponentCategory {
+  INTERNAL
+  EXTERNAL
+}
+
 enum NotificationType {
   SMS
   EMAIL
@@ -393,6 +407,7 @@ model Class {
   sections     Section[]
   classSubject ClassSubject[]
   enrollments  Enrollment[]
+  examClasses  ExamClass[]
 
   @@map("classes")
 }
@@ -446,6 +461,7 @@ model Subject {
   classSubjects ClassSubject[]
   attendance    AttendanceRecord[]
   examMarks     ExamMark[]
+  examSubjects  ExamSubject[]
 
   @@map("subjects")
 }
@@ -721,24 +737,26 @@ model GradeBand {
 model Exam {
   id             String     @id @default(cuid())
   name           String
-  examTypeId     String
+  examTypeId     String?
   gradeSchemaId  String?
   instituteId    String
   academicYearId String
   startDate      DateTime
   endDate        DateTime
-  totalMarks     Decimal    @db.Decimal(6, 2)
-  passingMarks   Decimal    @db.Decimal(6, 2)
+  totalMarks     Decimal?   @db.Decimal(6, 2)
+  passingMarks   Decimal?   @db.Decimal(6, 2)
   status         ExamStatus @default(DRAFT)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  examType     ExamType     @relation(fields: [examTypeId], references: [id])
+  examType     ExamType?    @relation(fields: [examTypeId], references: [id])
   gradeSchema  GradeSchema? @relation(fields: [gradeSchemaId], references: [id])
   institute    Institute    @relation(fields: [instituteId], references: [id], onDelete: Cascade)
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
   examResults  ExamResult[]
   examMarks    ExamMark[]
+  examClasses  ExamClass[]
+  examSubjects ExamSubject[]
 
   @@map("exams")
 }
@@ -778,6 +796,50 @@ model ExamMark {
 
   @@unique([examResultId, subjectId])
   @@map("exam_marks")
+}
+
+model ExamClass {
+  id      String @id @default(cuid())
+  examId  String
+  classId String
+
+  exam         Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  class        Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+  examSubjects ExamSubject[]
+
+  @@unique([examId, classId])
+  @@map("exam_classes")
+}
+
+model ExamSubject {
+  id          String @id @default(cuid())
+  examId      String
+  examClassId String
+  subjectId   String
+
+  exam       Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  examClass  ExamClass       @relation(fields: [examClassId], references: [id], onDelete: Cascade)
+  subject    Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  components ExamComponent[]
+
+  @@unique([examClassId, subjectId])
+  @@map("exam_subjects")
+}
+
+model ExamComponent {
+  id            String            @id @default(cuid())
+  examSubjectId String
+  name          String
+  type          ComponentType     @default(WRITTEN)
+  category      ComponentCategory @default(EXTERNAL)
+  maxMarks      Decimal           @db.Decimal(6, 2)
+  passingMarks  Decimal?          @db.Decimal(6, 2)
+  weightPercent Decimal?          @db.Decimal(5, 2)
+  createdAt     DateTime          @default(now())
+
+  examSubject ExamSubject @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+
+  @@map("exam_components")
 }
 
 // ─────────────────────────────────────────────

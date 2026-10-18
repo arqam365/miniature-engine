@@ -15,29 +15,34 @@ export class ExamsService {
     return this.prisma.exam.create({
       data: {
         name: dto.name,
-        examTypeId: dto.examTypeId,
+        examTypeId: dto.examTypeId ?? null,
         gradeSchemaId: dto.gradeSchemaId,
         instituteId,
         academicYearId: dto.academicYearId,
         startDate: new Date(dto.startDate),
         endDate: new Date(dto.endDate),
-        totalMarks: dto.totalMarks,
-        passingMarks: dto.passingMarks,
+        totalMarks: dto.totalMarks ?? null,
+        passingMarks: dto.passingMarks ?? null,
       },
       include: {
         examType: true,
         gradeSchema: { include: { gradeBands: true } },
+        academicYear: true,
       },
     });
   }
 
   async findAll() {
     const { instituteId } = requireTenantContext();
-    return this.prisma.exam.findMany({
+    const exams = await this.prisma.exam.findMany({
       where: { instituteId },
       include: { examType: true, academicYear: true },
       orderBy: { startDate: 'desc' },
     });
+    return exams.map((exam) => ({
+      ...exam,
+      isPublished: exam.status === ExamStatus.COMPLETED,
+    }));
   }
 
   async findOne(id: string) {
@@ -55,7 +60,6 @@ export class ExamsService {
   }
 
   async enterMarks(examId: string, entries: { studentId: string; subjectId: string; marksObtained: number }[]) {
-    const { instituteId } = requireTenantContext();
     const exam = await this.findOne(examId);
 
     return this.prisma.$transaction(async (tx) => {
@@ -79,7 +83,7 @@ export class ExamsService {
             examId,
             subjectId: entry.subjectId,
             marksObtained: entry.marksObtained,
-            maxMarks: exam.totalMarks,
+            maxMarks: exam.totalMarks ?? 100,
           },
         });
 
@@ -103,7 +107,7 @@ export class ExamsService {
     await this.prisma.$transaction(
       results.map((r) => {
         const total = r.marks.reduce((s, m) => s + Number(m.marksObtained), 0);
-        const isPassed = total >= Number(exam.passingMarks);
+        const isPassed = total >= Number(exam.passingMarks ?? 0);
         return this.prisma.examResult.update({
           where: { id: r.id },
           data: { totalMarks: total, isPassed, isPublished: true },
@@ -120,13 +124,99 @@ export class ExamsService {
   }
 
   async getRanking(examId: string) {
-    const { instituteId } = requireTenantContext();
     const results = await this.prisma.examResult.findMany({
       where: { examId, isPublished: true },
       orderBy: { totalMarks: 'desc' },
-      include: { student: { select: { firstName: true, lastName: true, admissionNo: true } } },
+      include: { student: { select: { id: true, firstName: true, lastName: true, admissionNo: true } } },
     });
 
     return results.map((r, i) => ({ ...r, rank: i + 1 }));
+  }
+
+  // ── Structure methods ──────────────────────────────────────────────────
+
+  async getExamConfig(examId: string) {
+    const { instituteId } = requireTenantContext();
+    const exam = await this.prisma.exam.findFirst({
+      where: { id: examId, instituteId },
+      include: {
+        academicYear: true,
+        examType: true,
+        examClasses: {
+          include: {
+            class: { select: { id: true, name: true, code: true } },
+            examSubjects: {
+              include: {
+                subject: { select: { id: true, name: true, code: true } },
+                components: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!exam) throw new NotFoundException('Exam not found');
+    return exam;
+  }
+
+  async addClassToExam(examId: string, classId: string) {
+    const { instituteId } = requireTenantContext();
+    await this.prisma.exam.findFirstOrThrow({ where: { id: examId, instituteId } });
+    return this.prisma.examClass.create({ data: { examId, classId } });
+  }
+
+  async removeClassFromExam(examId: string, classId: string) {
+    const { instituteId } = requireTenantContext();
+    await this.prisma.exam.findFirstOrThrow({ where: { id: examId, instituteId } });
+    return this.prisma.examClass.delete({ where: { examId_classId: { examId, classId } } });
+  }
+
+  async addSubjectToExamClass(examClassId: string, subjectId: string) {
+    const examClass = await this.prisma.examClass.findUniqueOrThrow({ where: { id: examClassId } });
+    return this.prisma.examSubject.create({
+      data: { examId: examClass.examId, examClassId, subjectId },
+    });
+  }
+
+  async removeExamSubject(examSubjectId: string) {
+    return this.prisma.examSubject.delete({ where: { id: examSubjectId } });
+  }
+
+  async addComponent(examSubjectId: string, dto: {
+    name: string; type: string; category: string;
+    maxMarks: number; passingMarks?: number | null; weightPercent?: number | null;
+  }) {
+    return this.prisma.examComponent.create({
+      data: {
+        examSubjectId,
+        name: dto.name,
+        type: dto.type as any,
+        category: dto.category as any,
+        maxMarks: dto.maxMarks,
+        passingMarks: dto.passingMarks ?? null,
+        weightPercent: dto.weightPercent ?? null,
+      },
+    });
+  }
+
+  async updateComponent(componentId: string, dto: {
+    name: string; type: string; category: string;
+    maxMarks: number; passingMarks?: number | null; weightPercent?: number | null;
+  }) {
+    return this.prisma.examComponent.update({
+      where: { id: componentId },
+      data: {
+        name: dto.name,
+        type: dto.type as any,
+        category: dto.category as any,
+        maxMarks: dto.maxMarks,
+        passingMarks: dto.passingMarks ?? null,
+        weightPercent: dto.weightPercent ?? null,
+      },
+    });
+  }
+
+  async deleteComponent(componentId: string) {
+    return this.prisma.examComponent.delete({ where: { id: componentId } });
   }
 }

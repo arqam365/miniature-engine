@@ -509,7 +509,7 @@ model Student {
 model Guardian {
   id           String   @id @default(cuid())
   firstName    String
-  lastName     String
+  lastName     String?
   relationship String
   phone           String
   whatsappNumber  String?

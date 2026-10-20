@@ -7,10 +7,10 @@ export class CreateGuardianDto {
   @IsNotEmpty()
   firstName: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsString()
-  @IsNotEmpty()
-  lastName: string;
+  @IsOptional()
+  lastName?: string;
 
   @ApiProperty({ example: 'Father' })
   @IsString()

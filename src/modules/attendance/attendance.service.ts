@@ -120,8 +120,8 @@ export class AttendanceService {
       }
       recipients.push({
         phone,
-        guardianName: `${link.guardian.firstName} ${link.guardian.lastName}`.trim(),
-        studentName: `${link.student.firstName} ${link.student.lastName ?? ''}`.trim(),
+        guardianName: [link.guardian.firstName, link.guardian.lastName].filter(Boolean).join(' '),
+        studentName: [link.student.firstName, link.student.lastName].filter(Boolean).join(' '),
         admissionNo: link.student.admissionNo,
         date: dateLabel,
       });

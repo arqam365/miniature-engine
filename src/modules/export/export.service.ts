@@ -67,7 +67,7 @@ export class ExportService {
         class: enr?.class?.name ?? '',
         section: enr?.section?.name ?? '',
         academicYear: enr?.academicYear?.name ?? '',
-        guardian: g ? `${g.firstName} ${g.lastName} (${g.relationship})` : '',
+        guardian: g ? `${[g.firstName, g.lastName].filter(Boolean).join(' ')} (${g.relationship})` : '',
         guardianPhone: g?.phone ?? '',
       });
     }
@@ -111,7 +111,7 @@ export class ExportService {
       ws.addRow({
         receiptNo: p.receiptNo,
         admissionNo: p.student.admissionNo,
-        name: `${p.student.firstName} ${p.student.lastName}`,
+        name: [p.student.firstName, p.student.lastName].filter(Boolean).join(' '),
         feeType: p.feeStructure?.name ?? '',
         amount: Number(p.amount),
         discount: Number(p.discount ?? 0),
@@ -195,7 +195,7 @@ export class ExportService {
     for (const r of records) {
       const row = ws.addRow({
         admissionNo: r.student.admissionNo,
-        name: `${r.student.firstName} ${r.student.lastName}`,
+        name: [r.student.firstName, r.student.lastName].filter(Boolean).join(' '),
         section: r.section?.name ?? '',
         status: r.status,
         remarks: r.remarks ?? '',

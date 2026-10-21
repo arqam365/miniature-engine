@@ -164,7 +164,7 @@ export class FeesService {
       data: data.map((p) => ({
         id: p.id,
         receiptNo: p.receiptNo,
-        studentName: `${p.student.firstName} ${p.student.lastName}`,
+        studentName: [p.student.firstName, p.student.lastName].filter(Boolean).join(' '),
         admissionNo: p.student.admissionNo,
         feeType: p.feeStructure?.name ?? '—',
         amount: toNum(p.amount),

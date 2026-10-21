@@ -127,13 +127,13 @@ export class DashboardService {
     return {
       recentStudents: students.map((s) => ({
         id: s.id,
-        name: `${s.firstName} ${s.lastName}`,
+        name: [s.firstName, s.lastName].filter(Boolean).join(' '),
         class: s.enrollments[0]?.class?.name ?? '—',
         admittedAt: s.admittedAt,
       })),
       recentPayments: payments.map((p) => ({
         id: p.id,
-        studentName: `${p.student.firstName} ${p.student.lastName}`,
+        studentName: [p.student.firstName, p.student.lastName].filter(Boolean).join(' '),
         amount: Number(p.totalAmount),
         paidAt: p.paidAt,
       })),

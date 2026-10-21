@@ -297,7 +297,7 @@ export class AccountsService {
       data: data.map((r) => ({
         id: r.id,
         receiptNo: r.receiptNo,
-        studentName: `${r.student.firstName} ${r.student.lastName}`,
+        studentName: [r.student.firstName, r.student.lastName].filter(Boolean).join(' '),
         admissionNo: r.student.admissionNo,
         amount: toNum(r.totalAmount),
         paymentMode: r.paymentMethod ?? 'CASH',

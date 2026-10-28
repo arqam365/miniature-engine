@@ -12,6 +12,11 @@ export class CreateGuardianDto {
   @IsOptional()
   lastName?: string;
 
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  motherName?: string;
+
   @ApiProperty({ example: 'Father' })
   @IsString()
   @IsNotEmpty()

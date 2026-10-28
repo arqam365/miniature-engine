@@ -526,6 +526,7 @@ model Guardian {
   id           String   @id @default(cuid())
   firstName    String
   lastName     String?
+  motherName   String?
   relationship String
   phone           String?
   whatsappNumber  String?

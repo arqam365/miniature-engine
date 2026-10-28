@@ -132,6 +132,7 @@ export class StudentsService {
         sectionId: dto.sectionId || undefined,
         batchId: dto.batchId || undefined,
         rollNumber: dto.rollNumber || undefined,
+        enrolledAt: dto.dateOfAdmission ? new Date(dto.dateOfAdmission) : undefined,
         isActive: true,
       },
       include: {

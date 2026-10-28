@@ -24,4 +24,9 @@ export class EnrollStudentDto {
   @IsString()
   @IsOptional()
   rollNumber?: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  @IsOptional()
+  dateOfAdmission?: string;
 }

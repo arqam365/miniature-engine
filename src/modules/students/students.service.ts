@@ -16,7 +16,12 @@ export class StudentsService {
     const existing = await this.prisma.student.findUnique({
       where: { instituteId_admissionNo: { instituteId, admissionNo: dto.admissionNo } },
     });
-    if (existing) throw new ConflictException('Admission number already exists');
+    if (existing?.isActive) throw new ConflictException('Admission number already exists');
+
+    if (existing && !existing.isActive) {
+      // soft-deleted orphan from a failed rollback — hard-delete it so the new record can be created
+      await this.prisma.student.delete({ where: { id: existing.id } });
+    }
 
     return this.prisma.student.create({
       data: {
